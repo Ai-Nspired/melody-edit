@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Truth Engine Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github-dark.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&family=Cutive+Mono&display=swap" rel="stylesheet">
+    <!-- Tone.js is required for audio playback on the piano grid -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* Keeping the sophisticated, dark, gold/green theme */
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #f0f0f0;
+            --border-color: #d4c4a8; /* Gold/Tan */
+            --modal-bg: #2a2a2a;
+            --input-bg: #1a1a1a;
+            --button-bg: #d4c4a8;
+            --accent: #d4c4a8;
+            --success: #00ff8c; /* Neon Green for success */
+            --highlight: #d4c4a8;
+            --warning: #ffab00;
+            --glow: rgba(212, 196, 168, 0.6);
+            --melody-note: #d4c4a8;
+            --melody-note-active: #00ff8c;
+        }
+        
+        * { box-sizing: border-box; transition: all .3s ease; }
+        
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Merriweather', serif;
+            font-size: 1rem;
+            margin: 0;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.6;
+            text-align: center;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+        }
+        
+        .admin-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px var(--glow);
+        }
+        
+        h1 {
+            color: var(--text-color);
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            text-align: center;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px var(--glow);
+        }
+        
+        /* === LOCK SCREEN STYLES === */
+        #melody-lock {
+            padding: 2rem 1rem;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .melody-instructions{
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1.08em;
+            border-radius: 7px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            margin-top: 10px;
+            border-left: 4px solid var(--accent);
+            text-align: left;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto
+        }
+        
+        #piano-grid{
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:10px;
+            margin:1rem 0;
+            padding:1rem;
+            background:var(--input-bg);
+            border-radius:8px;
+            border:1px solid var(--accent)
+        }
+        
+        .note-btn{
+            height:60px;
+            border:2px solid var(--accent);
+            border-radius:8px;
+            font-size:0.9rem;
+            font-weight:bold;
+            cursor:pointer;
+            box-shadow:0 2px 8px var(--glow);
+            color:#000;
+            transition:all .2s ease;
+            background:linear-gradient(145deg,#f8f8f8 0%,#e8e8e8 100%)
+        }
+        
+        .note-btn:hover{
+            transform:scale(1.02);
+            box-shadow:0 0 10px var(--glow)
+        }
+        
+        .note-btn.active{
+            background:var(--success);
+            color:#1e1e1e;
+            transform:scale(0.98);
+            box-shadow:0 0 15px var(--success)
+        }
+
+        .melodybar{
+            margin:0.5em 0;
+            display:flex;
+            flex-wrap:wrap;
+            gap:5px;
+            justify-content:center
+        }
+
+        .melodynote{
+            display:inline-block;
+            background:var(--melody-note);
+            color:#1e1e1e;
+            font-weight:bold;
+            font-size:0.85rem;
+            padding:4px 10px;
+            border-radius:18px;
+            margin:2px;
+            box-shadow:0 1px 3px var(--glow);
+            transition:all .15s;
+            animation:pulse 0.3s ease-out
+        }
+
+        .melodynote.playing{
+            background:var(--melody-note-active);
+            box-shadow:0 0 10px var(--melody-note-active)
+        }
+
+        .import-group{
+            margin:0.8em 0 0.5em;
+            display:flex;
+            justify-content:center;
+            gap:10px;
+            flex-wrap:wrap
+        }
+        
+        #melody-status{
+            font-weight:bold;
+            margin-top:10px;
+            min-height:22px;
+            color:var(--warning);
+            letter-spacing:0.02em;
+            font-family: 'Cutive Mono', monospace;
+        }
+
+        /* === ADMIN CONTENT STYLES === */
+        /* Tab System */
+        nav.tabs {
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            /* display: none; */ /* Handled by JS based on unlock state */
+        }
+        
+        nav.tabs a {
+            padding: 0.8rem 1.2rem;
+            text-decoration: none;
+            color: var(--text-color);
+            font-family: 'Cutive Mono', monospace;
+            font-size: 0.9rem;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        nav.tabs a:hover,
+        nav.tabs a:focus {
+            background-color: rgba(212, 196, 168, 0.1);
+            box-shadow: 0 0 5px var(--glow);
+        }
+        
+        nav.tabs a.active {
+            background-color: var(--border-color);
+            color: #1e1e1e;
+        }
+        
+        .content-pane {
+            display: none;
+            padding: 1.5rem 0;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .content-pane.active {
+            display: block;
+        }
+        
+        /* Form Elements */
+        label {
+            display: block;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--border-color);
+            text-align: left;
+        }
+        
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            margin-bottom: 0.5rem;
+            outline: none;
+            transition: border 0.3s ease;
+            text-align: left;
+        }
+        
+        input[type="text"]:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 5px var(--glow);
+        }
+        
+        textarea {
+            min-height: 200px;
+            font-family: 'Cutive Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: var(--button-bg);
+            color: #1e1e1e;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-family: 'Cutive Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 700;
+        }
+
+        button.accent {
+            background: var(--accent);
+        }
+        
+        button.success {
+            background: var(--success);
+            color: #1e1e1e;
+        }
+        
+        /* Status Messages */
+        .status-message {
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: rgba(212, 196, 168, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid var(--button-bg);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-align: left;
+        }
+        
+        .status-message.show {
+            opacity: 1;
+        }
+        
+        /* Preview Panels */
+        .preview-panel {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            overflow-y: auto;
+            max-height: 400px;
+            color: var(--text-color);
+            text-align: left;
+        }
+        
+        .content-length {
+            color: var(--text-color);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            text-align: right;
+            opacity: 0.7;
+        }
+        
+        .content-length.warning {
+            color: var(--warning);
+        }
+        
+        /* Citations */
+        .citations-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+        
+        /* Snippet Extractor Integration */
+        .snippet-container {
+            min-height: 500px;
+            border: 2px solid var(--border-color);
+            background: var(--input-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--text-color);
+            text-align: left;
+        }
+        
+        .snippet-container iframe {
+            width: 100%;
+            height: 430px; 
+            border: none;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        .snippet-container textarea {
+            min-height: 150px;
+            background: #0a0a0a;
+            color: var(--success);
+            font-family: 'Cutive Mono', monospace;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+            margin-top: 1rem;
+            justify-content: flex-start;
+        }
+        
+        .tab-buttons button {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px 5px 0 0;
+            padding: 10px;
+            cursor: pointer;
+            margin-right: 2px;
+            font-weight: 400;
+        }
+        
+        .tab-buttons button.active {
+            background: var(--border-color);
+            color: #1e1e1e;
+        }
+        
+        .analysis-section {
+            background: rgba(212, 196, 168, 0.05);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--border-color);
+        }
+        
+        .analysis-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .analysis-item strong {
+            color: var(--border-color);
+        }
+        
+        /* Microsite Generator */
+        .microsite-options {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(212, 196, 168, 0.05);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .microsite-code pre {
+            background: var(--input-bg);
+            color: var(--success);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Cutive Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.3;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-container {
+                padding: 1rem;
+            }
+            
+            nav.tabs a {
+                padding: 0.6rem;
+                font-size: 0.8rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>eitl truth editor</h1>
+        
+        <!-- === MELODY LOCK SCREEN === -->
+        <div id="melody-lock">
+            <h2 style="color:var(--accent); font-family: 'Cinzel', serif; margin-top:0;">ACCESS PROTOCOL</h2>
+            
+            <div class="melody-instructions">
+                <b>Unlock Protocol:</b> Play the melody that matches the hardcoded hash. Generate melody/pattern in <a href="aincipher.html" style="color:var(--success)">ai-n cipher</a>.<br>
+                <div style="font-size:0.95em;margin-top:7px;opacity:0.87;">**Status:** <span id="current-hash-display" style="font-family:'Cutive Mono', monospace;">Waiting for input...</span></div>
+            </div>
+            
+            <div id="piano-grid"></div>
+            
+            <div class="melody-controls button-group">
+                <button id="clearMelody">Clear Melody</button>
+                <button id="playMelody">Play Melody</button>
+                <button id="unlockAdmin" class="success">Unlock Admin</button>
+            </div>
+            
+            <div class="melodybar" id="melodyBar"></div>
+            
+            <div class="import-group">
+                <input type="text" id="importMelodyInput" placeholder="Pattern e.g. 1o-1q-1s">
+                <button id="importMelodyBtn">Import Pattern</button>
+            </div>
+            
+            <div id="melody-status"></div>
+        </div>
+        
+        <!-- === MAIN ADMIN INTERFACE (Hidden until unlocked) === -->
+        <div id="admin-interface" style="display:none;">
+            <nav class="tabs" id="main-tabs">
+                <a href="#" class="active" data-tab="query">Query Editor</a>
+                <a href="#" data-tab="preview">Preview Mode</a>
+                <a href="#" data-tab="snippets">HTML View & Extractor</a> 
+                <a href="#" data-tab="microsite">Microsite Snippets</a>
+                <a href="#" data-tab="library">Query Library</a>
+                <a href="#" data-tab="settings">Settings</a>
+            </nav>
+            
+            <!-- Query Editor Tab -->
+            <div id="query" class="content-pane active">
+                <label for="query-input">Query (exact):</label>
+                <input type="text" id="query-input" placeholder="e.g. what is cybrjustice?">
+                
+                <div class="button-group">
+                    <button id="load-btn">Load Query</button>
+                    <button id="preview-btn" class="accent">Preview</button>
+                    <button id="copy-btn">Copy Output</button>
+                </div>
+                
+                <div id="load-msg" class="status-message"></div>
+                
+                <label for="answer-input">Answer (Markdown supported):</label>
+                <textarea id="answer-input"></textarea>
+                <div id="char-count" class="content-length">Character count: 0</div>
+                
+                <label>Citations (up to 2):</label>
+                <div class="citations-container">
+                    <input type="text" placeholder="Title" class="citation-title">
+                    <input type="text" placeholder="URL" class="citation-url">
+                    <input type="text" placeholder="Title" class="citation-title">
+                    <input type="text" placeholder="URL" class="citation-url">
+                </div>
+                
+                <label for="editor-input">Your Name (for audit):</label>
+                <input type="text" id="editor-input" placeholder="admin">
+                
+                <div class="button-group">
+                    <button id="save-btn" class="success">Save Truth</button>
+                    <button id="new-btn">New Truth</button>
+                </div>
+                
+                <div id="save-msg" class="status-message"></div>
+            </div>
+            
+            <!-- Preview Mode Tab -->
+            <div id="preview" class="content-pane">
+                <div class="button-group">
+                    <button id="back-to-edit-btn">← Back to Editor</button>
+                    <button id="copy-preview-btn">Copy Output</button>
+                    <button id="export-preview-btn" class="accent">Export as HTML</button>
+                </div>
+                
+                <div id="preview-output" class="preview-panel">
+                    <p style="text-align: center; color: var(--text-color); opacity: 0.7;">
+                        Preview content will appear here when generated
+                    </p>
+                </div>
+            </div>
+            
+            <!-- HTML Snippets Tab (Enhanced Extractor) -->
+            <div id="snippets" class="content-pane">
+                <h3>HTML Snippet Extractor & Analyzer</h3>
+                <textarea id="html-input" placeholder="Paste your complete HTML here..."></textarea>
+                <div class="button-group">
+                    <button id="preview-snippet-btn">Preview & Analyze</button>
+                    <button id="clear-snippet-btn">Clear</button>
+                </div>
+                <div id="status-snippet-message" class="status-message"></div>
+                
+                <div class="tab-buttons">
+                    <button class="active" data-tab="preview-snippet">Preview</button>
+                    <button data-tab="analysis-snippet">Analysis</button>
+                    <button data-tab="snippets-extract">Extractor</button>
+                </div>
+                
+                <div class="snippet-container" id="preview-snippet-tab">
+                    <iframe id="preview-frame-snippet"></iframe>
+                </div>
+                
+                <div class="snippet-container" id="analysis-snippet-tab" style="display:none;">
+                    <h3>HTML Structure Analysis</h3>
+                    <div id="analysis-results-snippet">
+                        <p>Click "Preview & Analyze" to see detailed analysis of your HTML structure.</p>
+                    </div>
+                </div>
+                
+                <div class="snippet-container" id="snippets-extract-tab" style="display:none;">
+                    <h3>Extract Code Snippets</h3>
+                    <div class="snippet-controls button-group" style="justify-content: flex-start; margin-top: 0;">
+                        <select id="snippet-type" style="width: auto; flex-grow: 1;">
+                            <option value="full">Full Page</option>
+                            <option value="head">Head Section</option>
+                            <option value="styles">All Styles</option>
+                            <option value="scripts">All Scripts</option>
+                            <option value="nav">Navigation Elements</option>
+                            <option value="header">Header Section</option>
+                            <option value="main">Main Content</option>
+                            <option value="footer">Footer Section</option>
+                            <option value="forms">Form Elements</option>
+                            <option value="tables">Table Elements</option>
+                            <option value="lists">List Elements</option>
+                            <option value="images">Image Elements</option>
+                            <option value="links">Link Elements</option>
+                        </select>
+                        <button id="generate-snippet-btn" class="accent" style="flex-grow: 0;">Generate</button>
+                        <button id="copy-snippet-btn" style="flex-grow: 0;">Copy</button>
+                    </div>
+                    <pre id="snippet-output"><code>// Select a component type and click Generate</code></pre>
+                </div>
+            </div>
+            
+            <!-- Microsite Snippets Tab -->
+            <div id="microsite" class="content-pane">
+                <label for="microsite-type">Snippet Type:</label>
+                <select id="microsite-type">
+                    <option value="tabs">Tabs</option>
+                    <option value="constellation">Constellation</option>
+                    <option value="dossier">Dossier</option>
+                    <option value="query-trigger">Query Trigger</option>
+                </select>
+                
+                <div id="tabs-options" class="microsite-options">
+                    <label for="tab-titles">Tab Titles (comma separated):</label>
+                    <input type="text" id="tab-titles" placeholder="summary,context,founding">
+                    
+                    <label for="tab-contents">Tab Contents (Markdown, separate with '---'):</label>
+                    <textarea id="tab-contents" placeholder="First content...\n---\nSecond content...\n---\nThird content..."></textarea>
+                </div>
+                
+                <div id="constellation-options" class="microsite-options" style="display:none;">
+                    <label for="constellation-title">Constellation Title:</label>
+                    <input type="text" id="constellation-title" placeholder="Core Principles">
+                    
+                    <label for="constellation-nodes">Nodes (comma separated):</label>
+                    <input type="text" id="constellation-nodes" placeholder="justice,equity,transparency">
+                </div>
+                
+                <div id="query-trigger-options" class="microsite-options" style="display:none;">
+                    <label for="trigger-query">Trigger Query:</label>
+                    <input type="text" id="trigger-query" placeholder="what is cybrjustice?">
+                    
+                    <label for="trigger-text">Display Text:</label>
+                    <input type="text" id="trigger-text" placeholder="Learn about cybrjustice">
+                </div>
+                
+                <div class="button-group">
+                    <button id="generate-microsite-btn" class="accent">Generate Snippet</button>
+                    <button id="copy-microsite-btn">Copy Snippet</button>
+                </div>
+                
+                <div class="microsite-code">
+                    <h4>Microsite Snippet:</h4>
+                    <pre id="microsite-code-output"><code>// Your microsite snippet will appear here</code></pre>
+                </div>
+            </div>
+            
+            <!-- Query Library Tab -->
+            <div id="library" class="content-pane">
+                <div class="form-grid">
+                    <div>
+                        <label for="library-search">Search Truths:</label>
+                        <input type="text" id="library-search" placeholder="Search your truth library">
+                        
+                        <div class="preview-panel" style="height: 400px;">
+                            <h3>Saved Truths</h3>
+                            <ul id="truth-list">
+                                <li style="list-style: none;"><a href="#" data-id="truth-1">What is the meaning of life?</a> <span class="content-length">(edited 2023-10-25)</span></li>
+                                <li style="list-style: none;"><a href="#" data-id="truth-2">How does the Truth Engine work?</a> <span class="content-length">(AI generated)</span></li>
+                                <li style="list-style: none;"><a href="#" data-id="truth-3">Property management best practices</a> <span class="content-length">(edited 2023-10-20)</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label>Truth Details</label>
+                        <div class="preview-panel" style="height: 400px;">
+                            <h3 id="library-truth-title">Select a truth to view details</h3>
+                            <div id="library-truth-content">
+                                <p>When you select a truth from the list, its contents will appear here.</p>
+                                <p>You can then load it into the editor to make changes.</p>
+                            </div>
+                            <div class="button-group" style="margin-top: 1rem;">
+                                <button id="load-library-btn" disabled>Load into Editor</button>
+                                <button id="delete-library-btn" disabled style="background: var(--accent)">Delete Truth</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings" class="content-pane">
+                <div class="form-grid">
+                    <div>
+                        <h3>API Configuration</h3>
+                        
+                        <label for="api-endpoint">Truth Engine Endpoint</label>
+                        <input type="text" id="api-endpoint" value="https://justice.ai-n.workers.dev/api/ai">
+                        
+                        <label for="api-key">API Key</label>
+                        <input type="text" id="api-key" placeholder="Enter your API key">
+                        
+                        <label for="cache-pref">Cache Preference</label>
+                        <select id="cache-pref">
+                            <option>Always use cached when available</option>
+                            <option>Prefer fresh data</option>
+                            <option>Force refresh every time</option>
+                        </select>
+                        
+                        <div class="button-group">
+                            <button class="success">Save Settings</button>
+                            <button>Test Connection</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3>Editor Preferences</h3>
+                        
+                        <label for="editor-theme">Color Theme</label>
+                        <select id="editor-theme">
+                            <option>Dark (default)</option>
+                            <option>Light</option>
+                            <option>High Contrast</option>
+                            <option>Terminal Green</option>
+                        </select>
+                        
+                        <label for="font-size">Font Size</label>
+                        <select id="font-size">
+                            <option>Small</option>
+                            <option selected>Medium</option>
+                            <option>Large</option>
+                        </select>
+                        
+                        <label for="auto-preview">Auto Preview</label>
+                        <select id="auto-preview">
+                            <option>Disabled</option>
+                            <option>After 5 seconds idle</option>
+                            <option>Immediate</option>
+                        </select>
+                        
+                        <h3 style="margin-top: 1.5rem;">Audio Preferences (Melody Lock)</h3>
+                        <!-- Added Melody Lock Feature Placeholder -->
+                        <label for="melody-lock-pref">UI Feedback Melody</label>
+                        <select id="melody-lock-pref">
+                            <option selected>Disabled</option>
+                            <option>System Default (Locked)</option>
+                            <option>Custom Tone 1 (Locked)</option>
+                        </select>
+
+                        <h3 style="margin-top: 1.5rem;">Data Management</h3>
+                        <div class="button-group">
+                            <button>Export All Data</button>
+                            <button class="accent">Import Data</button>
+                            <button style="background: var(--warning)">Reset Local Cache</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of Admin Interface -->
+    </div>
+
+    <script>
+        // --------------------------------------------------------------------------------
+        // === MELODY LOCK / SECURITY LOGIC ===
+        // --------------------------------------------------------------------------------
+        
+        // 1. HARDCODED HASH (MUST BE MANUALLY UPDATED)
+        // Set this hash to the SHA-256 output of your chosen melody from aincipher.html.
+        // If this value is empty, the admin will be unlocked by default for testing.
+        const allowedMelodyHash = "bbe9b82979c1fa4ba51c6dd9057bdb72505ae94cdd658e2badd14b64d8a97167"; 
+        
+        // 2. MELODY AND HASH UTILS
+        const naturalNotes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72];
+        const palette = ["#d4c4a8","#00ff8c","#d7ff00","#ffe600","#ff9c00","#ff3700","#ff00b3","#7a00ff","#0039ff","#00b3ff","#00ff6a","#b6ff00"];
+        const noteNames = {48:'C3',50:'D3',52:'E3',53:'F3',55:'G3',57:'A3',59:'B3',60:'C4',62:'D4',64:'E4',65:'F4',67:'G4',69:'A4',71:'B4',72:'C5'};
+        let melody = [];
+        let synth = null;
+        
+        function midiToNoteName(midi){ return noteNames[midi] || '?'; }
+
+        async function initializeAudio() {
+            try {
+                if (Tone.context.state !== 'running') await Tone.start();
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+                    }).toDestination();
+                }
+            } catch (e) {
+                console.warn("Tone.js initialization failed:", e);
+            }
+        }
+        
+        async function playPianoNote(note) {
+            await initializeAudio();
+            const name = midiToNoteName(note);
+            if (synth) {
+                synth.triggerAttackRelease(name, "16n");
+            }
+        }
+        
+        async function hashMelody(mel){
+            const bytes=new Uint8Array(mel);
+            const hashBuf=await crypto.subtle.digest('SHA-256',bytes);
+            return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        }
+        
+        function patternToMelody(str){ return str.split('-').map(s=>parseInt(s,36)).filter(x=>!isNaN(x)); }
+        
+        function updateMelodyBar(){
+            const bar=document.getElementById('melodyBar');
+            bar.innerHTML='';
+            melody.forEach(n=>{
+                const span=document.createElement('span');
+                span.className='melodynote';
+                span.textContent=midiToNoteName(n);
+                bar.appendChild(span);
+            });
+        }
+        
+        async function playMelody(){
+            if(!melody.length)return;
+            const bar = document.getElementById('melodyBar');
+            const spans = bar.querySelectorAll('.melodynote');
+            const duration = 0.25; // seconds per note
+            
+            await initializeAudio();
+            if (!synth) return;
+
+            let time = Tone.now();
+            
+            melody.forEach((note, i) => {
+                const name = midiToNoteName(note);
+                synth.triggerAttackRelease(name, duration * 0.95, time);
+                
+                Tone.Draw.schedule(() => {
+                    spans.forEach(s => s.classList.remove('playing'));
+                    if (spans[i]) spans[i].classList.add('playing');
+                }, time);
+                time += duration;
+            });
+            
+            Tone.Draw.schedule(() => {
+                spans.forEach(s => s.classList.remove('playing'));
+            }, time);
+        }
+        
+        // 3. PIANO GRID RENDERING
+        function renderGrid(){
+            const grid = document.getElementById('piano-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            naturalNotes.forEach(n => {
+                const btn = document.createElement('button');
+                btn.className = 'note-btn';
+                btn.dataset.note = n;
+                btn.innerHTML = `<span>${midiToNoteName(n)}</span>`;
+                btn.style.background = palette[n % 12];
+                
+                btn.onclick = async () => {
+                    await playPianoNote(n);
+                    if (melody.length < 32) {
+                        melody.push(n);
+                        updateMelodyBar();
+                    }
+                    btn.classList.add('active');
+                    setTimeout(() => btn.classList.remove('active'), 180);
+                };
+                grid.appendChild(btn);
+            });
+        }
+        
+        // 4. LOCK SCREEN HANDLERS
+        document.getElementById('clearMelody').onclick = () => { 
+            melody = []; 
+            updateMelodyBar();
+            document.getElementById('melody-status').textContent = '';
+        };
+
+        document.getElementById('playMelody').onclick = playMelody;
+        
+        document.getElementById('importMelodyBtn').onclick = () => {
+            const pat = document.getElementById('importMelodyInput').value.trim();
+            if (!pat) return;
+            melody = patternToMelody(pat);
+            updateMelodyBar();
+            document.getElementById('melody-status').textContent = 'Melody pattern imported. Click Unlock Admin.';
+        };
+        
+        document.getElementById('unlockAdmin').onclick = async () => {
+            const status = document.getElementById('melody-status');
+            if (!melody.length){
+                status.textContent = 'Please tap or import a melody!';
+                return;
+            }
+            
+            status.textContent = "Checking hash...";
+            const hash = await hashMelody(melody);
+
+            if(hash === allowedMelodyHash){
+                status.innerHTML = `<span style="color:var(--success)">ACCESS GRANTED.</span>`;
+                document.getElementById('melody-lock').style.display = 'none';
+                document.getElementById('admin-interface').style.display = 'block';
+                document.getElementById('main-tabs').style.display = 'flex'; // Show tabs
+                switchTab('query'); // Show default tab
+            } else {
+                status.innerHTML = `<span style="color:var(--warning)">ACCESS DENIED. Incorrect melody.</span>`;
+            }
+        };
+
+        // 5. INITIAL CHECK
+        function initialUnlockCheck() {
+            const hashDisplay = document.getElementById('current-hash-display');
+            if (!allowedMelodyHash || allowedMelodyHash.length !== 64) {
+                // Auto-unlock if no hash is set or it's clearly invalid
+                document.getElementById('melody-lock').style.display = 'none';
+                document.getElementById('admin-interface').style.display = 'block';
+                document.getElementById('main-tabs').style.display = 'flex';
+                switchTab('query');
+                hashDisplay.textContent = "UNLOCKED (TEST MODE)";
+                hashDisplay.style.color = 'var(--warning)';
+            } else {
+                hashDisplay.textContent = "Locked: Enter Melody";
+                hashDisplay.style.color = 'var(--accent)';
+            }
+        }
+        
+        // --------------------------------------------------------------------------------
+        // === ORIGINAL ADMIN LOGIC ===
+        // --------------------------------------------------------------------------------
+
+        // Tab switching functionality
+        function switchTab(tabId) {
+            document.querySelectorAll('.content-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            document.querySelectorAll('#main-tabs a').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelector(`#main-tabs a[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'preview') {
+                updatePreview();
+            }
+        }
+        
+        // Set up tab click handlers (must be done after DOM is loaded)
+        window.onload = function() {
+            renderGrid();
+            initialUnlockCheck();
+
+            document.querySelectorAll('#main-tabs a').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // Initial setting for Snippets tab active content
+            document.getElementById('analysis-snippet-tab').style.display = 'none';
+            document.getElementById('snippets-extract-tab').style.display = 'none';
+        }
+        
+        // Initialize Marked.js for markdown rendering
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            }
+        });
+        
+        // DOM elements
+        const queryInput = document.getElementById('query-input');
+        const answerInput = document.getElementById('answer-input');
+        const editorInput = document.getElementById('editor-input');
+        const loadBtn = document.getElementById('load-btn');
+        const previewBtn = document.getElementById('preview-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const newBtn = document.getElementById('new-btn');
+        const loadMsg = document.getElementById('load-msg');
+        const saveMsg = document.getElementById('save-msg');
+        const charCount = document.getElementById('char-count');
+        const backToEditBtn = document.getElementById('back-to-edit-btn');
+        const copyPreviewBtn = document.getElementById('copy-preview-btn');
+        const previewOutput = document.getElementById('preview-output');
+        
+        // Microsite elements
+        const micrositeType = document.getElementById('microsite-type');
+        const tabsOptions = document.getElementById('tabs-options');
+        const constellationOptions = document.getElementById('constellation-options');
+        const queryTriggerOptions = document.getElementById('query-trigger-options');
+        const generateMicrositeBtn = document.getElementById('generate-microsite-btn');
+        const copyMicrositeBtn = document.getElementById('copy-microsite-btn');
+        const micrositeCode = document.getElementById('microsite-code-output');
+        
+        // Snippet Extractor elements
+        let currentHTMLSnippet = '';
+        let parsedDocumentSnippet = null;
+        
+        const htmlInput = document.getElementById('html-input');
+        const previewSnippetBtn = document.getElementById('preview-snippet-btn');
+        const clearSnippetBtn = document.getElementById('clear-snippet-btn');
+        const statusSnippetMessage = document.getElementById('status-snippet-message');
+        const snippetType = document.getElementById('snippet-type');
+        const generateSnippetBtn = document.getElementById('generate-snippet-btn');
+        const copySnippetBtn = document.getElementById('copy-snippet-btn');
+        const snippetOutput = document.getElementById('snippet-output');
+        
+        // API configuration
+        const API_BASE = "https://justice.ai-n.workers.dev";
+        
+        // Status show function
+        function showStatus(el, message, type = 'success') {
+            el.textContent = message;
+            el.classList.add('show');
+            // Remove any previous type classes
+            el.classList.remove('success', 'warning'); 
+            if (type === 'success') {
+                 el.classList.add('success');
+                 el.style.borderLeftColor = 'var(--success)';
+            } else if (type === 'error') {
+                 el.classList.add('warning');
+                 el.style.borderLeftColor = 'var(--warning)';
+            } else {
+                 el.style.borderLeftColor = 'var(--button-bg)';
+            }
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+        
+        // Character count update
+        answerInput.addEventListener('input', () => {
+            const count = answerInput.value.length;
+            charCount.textContent = `Character count: ${count}`;
+            
+            if (count > 8000) {
+                charCount.classList.add('warning');
+                charCount.textContent += " (Very long content may be truncated)";
+            } else {
+                charCount.classList.remove('warning');
+            }
+        });
+        
+        // Update preview content
+        function updatePreview() {
+            const content = answerInput.value || '';
+            previewOutput.innerHTML = marked.parse(content);
+            
+            document.querySelectorAll('#preview-output pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+        
+        // Preview button
+        previewBtn.addEventListener('click', () => {
+            if (answerInput.value.trim() === '') {
+                showStatus(saveMsg, "Please enter some content to preview", 'error');
+                return;
+            }
+            switchTab('preview');
+        });
+        
+        // Back to edit button
+        backToEditBtn.addEventListener('click', () => {
+            switchTab('query');
+        });
+        
+        // Copy output button
+        copyBtn.addEventListener('click', () => {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = answerInput.value;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showStatus(saveMsg, "Content copied to clipboard!");
+        });
+        
+        // Copy preview button
+        copyPreviewBtn.addEventListener('click', () => {
+            const range = document.createRange();
+            range.selectNodeContents(previewOutput);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                selection.removeAllRanges();
+                showStatus(saveMsg, "Preview copied to clipboard!");
+            } catch (err) {
+                showStatus(saveMsg, "Copy failed", 'error');
+            }
+        });
+        
+        // Load existing answer
+        loadBtn.addEventListener('click', async () => {
+            loadMsg.textContent = '';
+            saveMsg.textContent = '';
+            
+            const query = queryInput.value.trim();
+            if (!query) {
+                showStatus(loadMsg, "Enter a query to load.", 'error');
+                return;
+            }
+            
+            showStatus(loadMsg, "Loading...");
+            try {
+                const resp = await fetch(`${API_BASE}/api/ai/truth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query })
+                });
+                const data = await resp.json();
+                
+                if (data.answer) {
+                    answerInput.value = data.answer;
+                    
+                    const citationTitles = document.querySelectorAll('.citation-title');
+                    const citationUrls = document.querySelectorAll('.citation-url');
+                    
+                    document.querySelectorAll('.citation-title, .citation-url').forEach(el => el.value = ''); // Clear old
+                    
+                    if (data.citations && Array.isArray(data.citations)) {
+                        data.citations.slice(0,2).forEach((c, i) => {
+                            citationTitles[i].value = c.title || '';
+                            citationUrls[i].value = c.url || '';
+                        });
+                    }
+                    
+                    showStatus(loadMsg, data.edited 
+                        ? `Loaded (edited by ${data.lastEditedBy || "unknown"})` 
+                        : "Loaded (AI generated)");
+                } else {
+                    showStatus(loadMsg, "No answer found. You can create one.");
+                }
+            } catch (e) {
+                showStatus(loadMsg, "Error loading: " + e.message, 'error');
+            }
+        });
+        
+        // Save edited answer
+        saveBtn.addEventListener('click', async () => {
+            saveMsg.textContent = '';
+            const query = queryInput.value.trim();
+            const newAnswer = answerInput.value;
+            const editor = editorInput.value.trim() || "admin";
+            
+            const citations = [];
+            const citationTitles = document.querySelectorAll('.citation-title');
+            const citationUrls = document.querySelectorAll('.citation-url');
+            
+            for (let i = 0; i < 2; ++i) {
+                const title = citationTitles[i].value.trim();
+                const url = citationUrls[i].value.trim();
+                if (title && url) citations.push({ title, url });
+            }
+            
+            if (!query || !newAnswer) {
+                showStatus(saveMsg, "Query and answer required.", 'error');
+                return;
+            }
+            
+            showStatus(saveMsg, "Saving...");
+            try {
+                const resp = await fetch(`${API_BASE}/api/ai/edit-truth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        truthId: "truth:" + query.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-'),
+                        newText: newAnswer,
+                        editor,
+                        citations
+                    })
+                });
+                
+                if (resp.ok) {
+                    showStatus(saveMsg, `Saved!`);
+                } else {
+                    const errorText = await resp.text();
+                    showStatus(saveMsg, `Save failed: ${resp.status} - ${errorText}`, 'error');
+                }
+            } catch (e) {
+                showStatus(saveMsg, "Error saving: " + e.message, 'error');
+            }
+        });
+        
+        // New truth button
+        newBtn.addEventListener('click', () => {
+            queryInput.value = '';
+            answerInput.value = '';
+            document.querySelectorAll('.citation-title').forEach(el => el.value = '');
+            document.querySelectorAll('.citation-url').forEach(el => el.value = '');
+            editorInput.value = 'admin';
+            loadMsg.textContent = '';
+            saveMsg.textContent = '';
+            charCount.textContent = 'Character count: 0';
+            charCount.classList.remove('warning');
+            showStatus(saveMsg, "Editor cleared.", 'status');
+        });
+        
+        // Microsite type change handler
+        micrositeType.addEventListener('change', () => {
+            document.querySelectorAll('.microsite-options').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            if (micrositeType.value === 'tabs') {
+                tabsOptions.style.display = 'block';
+            } else if (micrositeType.value === 'constellation') {
+                constellationOptions.style.display = 'block';
+            } else if (micrositeType.value === 'query-trigger') {
+                queryTriggerOptions.style.display = 'block';
+            }
+        });
+        
+        // Generate microsite snippet
+        generateMicrositeBtn.addEventListener('click', () => {
+            const type = micrositeType.value;
+            let snippet = '';
+            
+            if (type === 'tabs') {
+                const titles = document.getElementById('tab-titles').value.split(',');
+                const contents = document.getElementById('tab-contents').value.split('---');
+                
+                snippet = `<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&display=swap');
+nav.tabs-snippet { 
+    display: flex; 
+    flex-wrap: wrap;
+    border-bottom: 2px solid #d4c4a8;
+    margin-bottom: 1rem;
+}
+nav.tabs-snippet a { 
+    padding: 0.6rem 1rem;
+    font-family: 'Merriweather', serif;
+    text-decoration: none;
+    color: #f0f0f0;
+    border-right: 1px solid #d4c4a8;
+}
+nav.tabs-snippet a:hover {
+    background-color: rgba(212, 196, 168, 0.1);
+}
+.content-pane-snippet { 
+    display: none;
+    padding: 1rem;
+    border-left: 2px solid #d4c4a8;
+}
+.content-pane-snippet:target { 
+    display: block; 
+}
+</style>
+
+<nav class="tabs-snippet">`;
+                
+                titles.forEach((title, i) => {
+                    if (title.trim()) {
+                        snippet += `\n    <a href="#pane-${i+1}-snippet">${title.trim()}</a>`;
+                    }
+                });
+                
+                snippet += '\n</nav>\n';
+                
+                contents.forEach((content, i) => {
+                    if (content.trim()) {
+                        snippet += `\n<section id="pane-${i+1}-snippet" class="content-pane-snippet">\n`;
+                        snippet += `${marked.parse(content.trim())}\n`;
+                        snippet += `</section>\n`;
+                    }
+                });
+                
+            } else if (type === 'query-trigger') {
+                const query = document.getElementById('trigger-query').value;
+                const text = document.getElementById('trigger-text').value;
+                
+                snippet = `<style>
+.query-trigger { 
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #d4c4a8;
+    color: #1e1e1e;
+    font-family: 'Merriweather', serif;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+.query-trigger:hover {
+    background: #c4b498;
+    transform: translateY(-1px);
+}
+</style>
+
+<a href="https://justice.ai-n.workers.dev/api/ai?q=${encodeURIComponent(query)}" class="query-trigger">
+    ${text}
+</a>`;
+            } else if (type === 'constellation') {
+                const title = document.getElementById('constellation-title').value || 'Constellation';
+                const nodes = document.getElementById('constellation-nodes').value.split(',');
+                
+                snippet = `<style>
+.constellation {
+    font-family: 'Merriweather', serif;
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin: 1rem 0;
+}
+.constellation-title {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #d4c4a8;
+}
+.constellation-node {
+    position: absolute;
+    background: #d4c4a8;
+    color: #1e1e1e;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(212, 196, 168, 0.6);
+}
+/* Basic positioning for 3 nodes */
+.constellation-node:nth-child(2) { left: 10%; top: 10%; }
+.constellation-node:nth-child(3) { left: 80%; top: 20%; }
+.constellation-node:nth-child(4) { left: 40%; top: 70%; }
+</style>
+
+<div class="constellation">
+    <div class="constellation-title">${title}</div>`;
+                
+                // Position nodes
+                nodes.forEach((node, i) => {
+                    if (node.trim()) {
+                        // Using CSS pseudo-classes for positioning as above
+                        snippet += `\n    <div class="constellation-node">${node.trim()}</div>`;
+                    }
+                });
+                
+                snippet += '\n</div>';
+            }
+            
+            micrositeCode.innerHTML = hljs.highlight(snippet, { language: 'html' }).value;
+            showStatus(saveMsg, "Microsite snippet generated!", 'success');
+        });
+        
+        // Copy microsite snippet
+        copyMicrositeBtn.addEventListener('click', () => {
+            const snippet = micrositeCode.textContent;
+            navigator.clipboard.writeText(snippet).then(() => {
+                showStatus(saveMsg, "Microsite snippet copied to clipboard!");
+            }).catch(err => {
+                showStatus(saveMsg, "Copy failed: " + err.message, 'error');
+            });
+        });
+
+        // Snippet Extractor Tab Functionality
+        // Tab switching for snippets
+        document.querySelectorAll('[data-tab*="-snippet"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Hide all tabs
+                document.getElementById('preview-snippet-tab').style.display = 'none';
+                document.getElementById('analysis-snippet-tab').style.display = 'none';
+                document.getElementById('snippets-extract-tab').style.display = 'none';
+                
+                // Show selected tab
+                document.getElementById(btn.dataset.tab + '-tab').style.display = 'block';
+            });
+        });
+
+        // Show status for snippets
+        function showSnippetStatus(message, type = 'success') {
+            const el = statusSnippetMessage;
+            el.textContent = message;
+            el.classList.add('show');
+            el.classList.remove('success', 'warning'); 
+            if (type === 'success') {
+                 el.classList.add('success');
+                 el.style.borderLeftColor = 'var(--success)';
+            } else if (type === 'error') {
+                 el.classList.add('warning');
+                 el.style.borderLeftColor = 'var(--warning)';
+            } else {
+                 el.style.borderLeftColor = 'var(--button-bg)';
+            }
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        // Analyze HTML structure for snippets
+        function analyzeHTMLSnippet(html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                parsedDocumentSnippet = doc;
+                
+                const analysis = {
+                    totalElements: doc.querySelectorAll('*').length,
+                    headElements: doc.querySelectorAll('head *').length,
+                    bodyElements: doc.querySelectorAll('body *').length,
+                    divElements: doc.querySelectorAll('div').length,
+                    spanElements: doc.querySelectorAll('span').length,
+                    paragraphs: doc.querySelectorAll('p').length,
+                    headings: doc.querySelectorAll('h1, h2, h3, h4, h5, h6').length,
+                    links: doc.querySelectorAll('a').length,
+                    images: doc.querySelectorAll('img').length,
+                    forms: doc.querySelectorAll('form').length,
+                    inputs: doc.querySelectorAll('input, textarea, select').length,
+                    tables: doc.querySelectorAll('table').length,
+                    lists: doc.querySelectorAll('ul, ol').length,
+                    scripts: doc.querySelectorAll('script').length,
+                    styles: doc.querySelectorAll('style, link[rel="stylesheet"]').length,
+                    classes: new Set(Array.from(doc.querySelectorAll('[class]')).map(el => el.className.split(' ')).flat().filter(c => c.trim())).size,
+                    ids: doc.querySelectorAll('[id]').length
+                };
+
+                // Display analysis results
+                const resultsContainer = document.getElementById('analysis-results-snippet');
+                resultsContainer.innerHTML = `
+                    <div class="analysis-section">
+                        <h4>Element Count</h4>
+                        <div class="analysis-item"><span>Total Elements:</span> <strong>${analysis.totalElements}</strong></div>
+                        <div class="analysis-item"><span>Head Elements:</span> <strong>${analysis.headElements}</strong></div>
+                        <div class="analysis-item"><span>Body Elements:</span> <strong>${analysis.bodyElements}</strong></div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>Content Elements</h4>
+                        <div class="analysis-item"><span>Div Elements:</span> <strong>${analysis.divElements}</strong></div>
+                        <div class="analysis-item"><span>Span Elements:</span> <strong>${analysis.spanElements}</strong></div>
+                        <div class="analysis-item"><span>Paragraphs:</span> <strong>${analysis.paragraphs}</strong></div>
+                        <div class="analysis-item"><span>Headings:</span> <strong>${analysis.headings}</strong></div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>Interactive Elements</h4>
+                        <div class="analysis-item"><span>Links:</span> <strong>${analysis.links}</strong></div>
+                        <div class="analysis-item"><span>Images:</span> <strong>${analysis.images}</strong></div>
+                        <div class="analysis-item"><span>Forms:</span> <strong>${analysis.forms}</strong></div>
+                        <div class="analysis-item"><span>Input Fields:</span> <strong>${analysis.inputs}</strong></div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>Structure Elements</h4>
+                        <div class="analysis-item"><span>Tables:</span> <strong>${analysis.tables}</strong></div>
+                        <div class="analysis-item"><span>Lists:</span> <strong>${analysis.lists}</strong></div>
+                        <div class="analysis-item"><span>Scripts:</span> <strong>${analysis.scripts}</strong></div>
+                        <div class="analysis-item"><span>Styles:</span> <strong>${analysis.styles}</strong></div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>Attributes</h4>
+                        <div class="analysis-item"><span>Unique Classes:</span> <strong>${analysis.classes}</strong></div>
+                        <div class="analysis-item"><span>Elements with IDs:</span> <strong>${analysis.ids}</strong></div>
+                    </div>
+                `;
+
+                return analysis;
+            } catch (error) {
+                console.error('Analysis error:', error);
+                document.getElementById('analysis-results-snippet').innerHTML = `
+                    <div class="analysis-section">
+                        <h4>Analysis Error</h4>
+                        <p style="color: var(--warning);">Could not analyze HTML: ${error.message}</p>
+                    </div>
+                `;
+                return null;
+            }
+        }
+
+        // Preview and analyze button for snippets
+        previewSnippetBtn.addEventListener('click', function() {
+            const html = htmlInput.value;
+            if (!html.trim()) {
+                showSnippetStatus("Please enter HTML content", "error");
+                return;
+            }
+            
+            currentHTMLSnippet = html;
+            
+            // Create preview
+            const iframe = document.getElementById('preview-frame-snippet');
+            const blob = new Blob([html], {type: 'text/html'});
+            iframe.src = URL.createObjectURL(blob);
+            
+            // Perform analysis
+            analyzeHTMLSnippet(html);
+            
+            // Show success message
+            showSnippetStatus("HTML previewed and analyzed successfully!");
+        });
+
+        // Clear button for snippets
+        clearSnippetBtn.addEventListener('click', function() {
+            htmlInput.value = '';
+            document.getElementById('preview-frame-snippet').src = '';
+            document.getElementById('analysis-results-snippet').innerHTML = '<p>Click "Preview & Analyze" to see detailed analysis of your HTML structure.</p>';
+            document.getElementById('snippet-output').innerHTML = '<code>// Select a component type and click Generate</code>';
+            currentHTMLSnippet = '';
+            parsedDocumentSnippet = null;
+            showSnippetStatus("Content cleared");
+        });
+
+        // Enhanced snippet generation
+        generateSnippetBtn.addEventListener('click', function() {
+            if (!currentHTMLSnippet || !parsedDocumentSnippet) {
+                showSnippetStatus("Please preview and analyze HTML first", "error");
+                return;
+            }
+            
+            const type = snippetType.value;
+            
+            try {
+                let snippet = '';
+                let elements = [];
+                
+                switch(type) {
+                    case 'full':
+                        snippet = currentHTMLSnippet;
+                        break;
+                        
+                    case 'head':
+                        const head = parsedDocumentSnippet.querySelector('head');
+                        snippet = head ? head.outerHTML : '<!-- No head section found -->';
+                        break;
+                        
+                    case 'styles':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('style, link[rel="stylesheet"]'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No styles found -->';
+                        break;
+                        
+                    case 'scripts':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('script'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No scripts found -->';
+                        break;
+                        
+                    case 'nav':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('nav, .nav, .navigation, .navbar'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No navigation elements found -->';
+                        break;
+                        
+                    case 'header':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('header, .header'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No header elements found -->';
+                        break;
+                        
+                    case 'main':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('main, .main, .content, .main-content'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No main content elements found -->';
+                        break;
+                        
+                    case 'footer':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('footer, .footer'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No footer elements found -->';
+                        break;
+                        
+                    case 'forms':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('form'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No forms found -->';
+                        break;
+                        
+                    case 'tables':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('table'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No tables found -->';
+                        break;
+                        
+                    case 'lists':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('ul, ol'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n\n') : 
+                            '<!-- No lists found -->';
+                        break;
+                        
+                    case 'images':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('img'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n') : 
+                            '<!-- No images found -->';
+                        break;
+                        
+                    case 'links':
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('a'));
+                        snippet = elements.length > 0 ? 
+                            elements.map(el => el.outerHTML).join('\n') : 
+                            '<!-- No links found -->';
+                        break;
+                }
+                
+                // Apply syntax highlighting
+                const highlighted = hljs.highlight(snippet, {language: 'html'}).value;
+                snippetOutput.innerHTML = highlighted;
+                
+                showSnippetStatus(`${type.charAt(0).toUpperCase() + type.slice(1)} snippet generated successfully!`);
+                
+            } catch (e) {
+                snippetOutput.innerHTML = `<code>ERROR: ${e.message}</code>`;
+                showSnippetStatus(`Error generating snippet: ${e.message}`, "error");
+            }
+        });
+
+        // Copy snippet functionality
+        copySnippetBtn.addEventListener('click', function() {
+            const snippetElement = snippetOutput;
+            if (!snippetElement || !snippetElement.textContent.trim()) {
+                showSnippetStatus("No snippet to copy", "error");
+                return;
+            }
+            
+            const snippet = snippetElement.textContent;
+            // Use execCommand for better clipboard support in sandboxed environments
+            const tempInput = document.createElement('textarea');
+            tempInput.value = snippet;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showSnippetStatus('Snippet copied to clipboard!');
+        });
+
+        // Initialize with query tab
+        switchTab('query');
+        
+        // Load sample truth if URL has query
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const q = params.get('q');
+            if (q) {
+                queryInput.value = q;
+                loadBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
+
