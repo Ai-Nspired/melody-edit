@@ -13,6 +13,7 @@
     <style>
         /* Keeping the sophisticated, dark, gold/green theme */
         :root {
+            /* Theme 1: Original Dark/Gold */
             --bg-color: #1e1e1e;
             --text-color: #f0f0f0;
             --border-color: #d4c4a8; /* Gold/Tan */
@@ -26,8 +27,48 @@
             --glow: rgba(212, 196, 168, 0.6);
             --melody-note: #d4c4a8;
             --melody-note-active: #00ff8c;
+
+            /* --- OUTPUT THEME VARIABLES (from ad2.html merged) --- */
+            /* Default: Silvery */
+            --output-bg-color: #f8f8ff; 
+            --output-text-color: #1a1a1a;
+            --output-secondary-text: #6c757d;
+            --output-accent-color: #1a2a3a;
+            
+            /* Core for blocks */
+            --truth-accent-light: #0cf;
+            --truth-positive: #00ff8c;
+            --truth-warning: #ff5050;
+            --block-text-normal: #f0f0f0;
+
+            /* Blocks */
+            --block-source-bg: rgba(26, 42, 58, 0.5);
+            --block-memo-bg: rgba(0, 71, 171, 0.2);
+            --block-blueprint-bg: rgba(0, 255, 136, 0.1);
+            --block-logic-bg: #111b2c;
+            --block-spy-ink-bg: #000000;
+            
         }
         
+        /* --- OUTPUT MODE OVERRIDES (SILVERY, DARK, NEO) --- */
+        /* Dark Mode */
+        [data-output-mode="dark"] {
+            --output-bg-color: #1a1a1a;
+            --output-text-color: #f0f0f0;
+            --output-secondary-text: #9fa8da;
+            --output-accent-color: #c7a17a;
+            --block-text-normal: #e5f7ff;
+        }
+        /* Neo (Metric Spring / High Contrast) Mode */
+        [data-output-mode="neo"] {
+            --output-bg-color: #000000;
+            --output-text-color: #00FF00;
+            --output-secondary-text: #00AA00;
+            --output-accent-color: #00FF00;
+            --block-text-normal: #00FF00;
+        }
+
+        /* Base styles */
         * { box-sizing: border-box; transition: all .3s ease; }
         
         body {
@@ -176,7 +217,6 @@
             flex-wrap: wrap;
             border-bottom: 2px solid var(--border-color);
             margin-bottom: 2rem;
-            /* display: none; */ /* Handled by JS based on unlock state */
         }
         
         nav.tabs a {
@@ -304,14 +344,18 @@
         
         /* Preview Panels */
         .preview-panel {
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-top: 1rem;
+            width: 100%;
+            min-height: 100px;
+            padding: 18px;
+            margin-top: 12px;
+            background: var(--output-bg-color); /* Themed background */
+            border: 1.5px solid var(--output-accent-color); /* Themed border */
+            border-radius: 9px;
+            color: var(--output-text-color); /* Themed text */
+            font-size: 1.09em;
             overflow-y: auto;
-            max-height: 400px;
-            color: var(--text-color);
+            box-shadow: 0 2px 13px rgba(0,0,0,.2);
+            transition: background .15s;
             text-align: left;
         }
         
@@ -335,7 +379,119 @@
             margin: 1rem 0;
         }
         
-        /* Snippet Extractor Integration */
+        /* === CONTENT CREATION STYLES === */
+        
+        .creation-helpers-section {
+            background: var(--input-bg);
+            padding: 15px;
+            border-radius: 9px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--success);
+        }
+        .creation-helpers-section h4 {
+            color: var(--success);
+            margin: 0 0 10px;
+            font-weight: 600;
+        }
+        .mode-select-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+            justify-content: flex-start;
+        }
+        .mode-select-row label {
+            margin-top: 0;
+            font-weight: 500;
+            font-size: 1em;
+            color: var(--text-color);
+        }
+        .mode-select-row select {
+            width: auto;
+            min-height: 38px;
+            flex-grow: 1;
+        }
+
+        .creation-button-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .creation-button-row button {
+            flex: unset; 
+            min-width: 0; 
+            padding: 7px 12px; 
+            font-size: 0.9em; 
+            background: var(--modal-bg); 
+            color: var(--success);
+            border: 1px solid var(--accent);
+            transition: all 0.1s;
+        }
+        .creation-button-row button:hover {
+            background: var(--success);
+            color: var(--input-bg);
+        }
+        .module-stack-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .module-stack-row select {
+            flex-grow: 1;
+            margin-bottom: 0;
+            min-height: 40px;
+        }
+        .module-stack-row button {
+            margin-top: 0;
+            flex: unset;
+            padding: 10px 18px;
+            background: var(--success);
+            color: var(--input-bg);
+            font-weight: 600;
+        }
+        .module-stack-row button:hover {
+            background: #00c46e;
+        }
+        /* Custom Block Styles (for preview rendering) */
+        .preview .block-source-bg { background-color: rgba(26, 42, 58, 0.5); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview .block-memo-bg { background-color: rgba(0, 71, 171, 0.2); border-left: 4px solid var(--truth-accent-light); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview .block-blueprint-bg { background-color: rgba(0, 255, 136, 0.1); border: 2px dashed var(--truth-positive); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview .block-logic-bg { background-color: #111b2c; font-family: 'Courier New', monospace; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview .block-spy-ink-bg { background-color: var(--output-bg-color); border: 1px dashed red; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .preview .block-spy-ink-bg p { color: var(--output-bg-color) !important; transition: none; } /* Hide text by setting color to background color */
+
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* === SNIPPET EXTRACTOR STYLES === */
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+            margin-top: 1rem;
+        }
+        
+        .tab-buttons button {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px 5px 0 0;
+            padding: 10px;
+            cursor: pointer;
+            margin-right: 2px;
+            font-weight: 400;
+        }
+        
+        .tab-buttons button.active {
+            background: var(--border-color);
+            color: #1e1e1e;
+        }
+
         .snippet-container {
             min-height: 500px;
             border: 2px solid var(--border-color);
@@ -362,29 +518,6 @@
             font-family: 'Cutive Mono', monospace;
         }
         
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 10px;
-            margin-top: 1rem;
-            justify-content: flex-start;
-        }
-        
-        .tab-buttons button {
-            background: var(--input-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 5px 5px 0 0;
-            padding: 10px;
-            cursor: pointer;
-            margin-right: 2px;
-            font-weight: 400;
-        }
-        
-        .tab-buttons button.active {
-            background: var(--border-color);
-            color: #1e1e1e;
-        }
-        
         .analysis-section {
             background: rgba(212, 196, 168, 0.05);
             padding: 15px;
@@ -403,18 +536,9 @@
             color: var(--border-color);
         }
         
-        /* Microsite Generator */
-        .microsite-options {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: rgba(212, 196, 168, 0.05);
-            border-radius: 4px;
-            border-left: 3px solid var(--accent);
-        }
-        
-        .microsite-code pre {
+        #snippet-output {
             background: var(--input-bg);
-            color: var(--success);
+            color: var(--text-color);
             padding: 1rem;
             border-radius: 4px;
             overflow-x: auto;
@@ -422,13 +546,7 @@
             font-size: 0.8rem;
             line-height: 1.3;
             border: 1px solid var(--border-color);
-            text-align: left;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            margin-top: 15px;
         }
         
         /* Responsive */
@@ -449,10 +567,17 @@
             .button-group {
                 flex-direction: column;
             }
+            .mode-select-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .module-stack-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
-<body>
+<body data-output-mode="silvery">
     <div class="admin-container">
         <h1>eitl truth editor</h1>
         
@@ -491,7 +616,6 @@
                 <a href="#" data-tab="snippets">HTML View & Extractor</a> 
                 <a href="#" data-tab="microsite">Microsite Snippets</a>
                 <a href="#" data-tab="library">Query Library</a>
-                <a href="#" data-tab="settings">Settings</a>
             </nav>
             
             <!-- Query Editor Tab -->
@@ -508,15 +632,54 @@
                 <div id="load-msg" class="status-message"></div>
                 
                 <label for="answer-input">Answer (Markdown supported):</label>
+                
+                <!-- CONTENT CREATION HELPERS -->
+                <div class="creation-helpers-section">
+                    <h4>Content Creation Helpers</h4>
+                    
+                    <div class="mode-select-row">
+                        <label for="output-mode-select">Preview Theme:</label>
+                        <select id="output-mode-select" onchange="setMode(this.value)">
+                            <option value="silvery">Silvery (Default)</option>
+                            <option value="dark">Dark</option>
+                            <option value="neo">Neo (High Contrast)</option>
+                        </select>
+                    </div>
+
+                    <div class="creation-button-row">
+                        <button onclick="insertMarkdown('**text**', '**', '**')">Bold</button>
+                        <button onclick="insertMarkdown('`code`', '`', '`')">Code</button>
+                        <button onclick="insertMarkdown('[link](url)', '[', '](url)')">Link</button>
+                        <button onclick="insertMarkdown('## Heading', '## ', '')">H2</button>
+                        <button onclick="insertMarkdown('- item', '- ', '')">List</button>
+                        <button onclick="insertIframe()">iFrame Template</button>
+                        <button onclick="insertCitationBlock()">Citation Block</button>
+                        <button onclick="removeExtraWhitespace()" style="background: var(--modal-bg); color: var(--text-color);">Cleanup Whitespace</button>
+                    </div>
+                    
+                    <div class="module-stack-row">
+                        <select id="style-select">
+                            <option value="source-block">Source Material Block</option>
+                            <option value="memo-block">General Memo Block</option>
+                            <option value="blueprint-block">Blueprint Block</option>
+                            <option value="logic-block">Logic/Code Block</option>
+                            <option value="spy-ink-block">Spy Ink Block (Hidden)</option>
+                        </select>
+                        <button onclick="addBlock()">Insert Block</button>
+                    </div>
+                    
+                </div>
+                <!-- END CONTENT CREATION HELPERS -->
+
                 <textarea id="answer-input"></textarea>
                 <div id="char-count" class="content-length">Character count: 0</div>
                 
                 <label>Citations (up to 2):</label>
                 <div class="citations-container">
-                    <input type="text" placeholder="Title" class="citation-title">
-                    <input type="text" placeholder="URL" class="citation-url">
-                    <input type="text" placeholder="Title" class="citation-title">
-                    <input type="text" placeholder="URL" class="citation-url">
+                    <input type="text" placeholder="Title 1" class="citation-title">
+                    <input type="text" placeholder="URL 1" class="citation-url">
+                    <input type="text" placeholder="Title 2" class="citation-title">
+                    <input type="text" placeholder="URL 2" class="citation-url">
                 </div>
                 
                 <label for="editor-input">Your Name (for audit):</label>
@@ -539,7 +702,7 @@
                 </div>
                 
                 <div id="preview-output" class="preview-panel">
-                    <p style="text-align: center; color: var(--text-color); opacity: 0.7;">
+                    <p style="text-align: center; color: var(--output-text-color); opacity: 0.7;">
                         Preview content will appear here when generated
                     </p>
                 </div>
@@ -556,9 +719,9 @@
                 <div id="status-snippet-message" class="status-message"></div>
                 
                 <div class="tab-buttons">
-                    <button class="active" data-tab="preview-snippet">Preview</button>
-                    <button data-tab="analysis-snippet">Analysis</button>
-                    <button data-tab="snippets-extract">Extractor</button>
+                    <button class="active" data-tab="preview-snippet-tab">Preview</button>
+                    <button data-tab="analysis-snippet-tab">Analysis</button>
+                    <button data-tab="snippets-extract-tab">Extractor</button>
                 </div>
                 
                 <div class="snippet-container" id="preview-snippet-tab">
@@ -599,6 +762,7 @@
             
             <!-- Microsite Snippets Tab -->
             <div id="microsite" class="content-pane">
+                <h3>Microsite Snippet Generator</h3>
                 <label for="microsite-type">Snippet Type:</label>
                 <select id="microsite-type">
                     <option value="tabs">Tabs</option>
@@ -652,9 +816,7 @@
                         <div class="preview-panel" style="height: 400px;">
                             <h3>Saved Truths</h3>
                             <ul id="truth-list">
-                                <li style="list-style: none;"><a href="#" data-id="truth-1">What is the meaning of life?</a> <span class="content-length">(edited 2023-10-25)</span></li>
-                                <li style="list-style: none;"><a href="#" data-id="truth-2">How does the Truth Engine work?</a> <span class="content-length">(AI generated)</span></li>
-                                <li style="list-style: none;"><a href="#" data-id="truth-3">Property management best practices</a> <span class="content-length">(edited 2023-10-20)</span></li>
+                                <!-- Populated by JS -->
                             </ul>
                         </div>
                     </div>
@@ -675,87 +837,16 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Settings Tab -->
-            <div id="settings" class="content-pane">
-                <div class="form-grid">
-                    <div>
-                        <h3>API Configuration</h3>
-                        
-                        <label for="api-endpoint">Truth Engine Endpoint</label>
-                        <input type="text" id="api-endpoint" value="https://justice.ai-n.workers.dev/api/ai">
-                        
-                        <label for="api-key">API Key</label>
-                        <input type="text" id="api-key" placeholder="Enter your API key">
-                        
-                        <label for="cache-pref">Cache Preference</label>
-                        <select id="cache-pref">
-                            <option>Always use cached when available</option>
-                            <option>Prefer fresh data</option>
-                            <option>Force refresh every time</option>
-                        </select>
-                        
-                        <div class="button-group">
-                            <button class="success">Save Settings</button>
-                            <button>Test Connection</button>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3>Editor Preferences</h3>
-                        
-                        <label for="editor-theme">Color Theme</label>
-                        <select id="editor-theme">
-                            <option>Dark (default)</option>
-                            <option>Light</option>
-                            <option>High Contrast</option>
-                            <option>Terminal Green</option>
-                        </select>
-                        
-                        <label for="font-size">Font Size</label>
-                        <select id="font-size">
-                            <option>Small</option>
-                            <option selected>Medium</option>
-                            <option>Large</option>
-                        </select>
-                        
-                        <label for="auto-preview">Auto Preview</label>
-                        <select id="auto-preview">
-                            <option>Disabled</option>
-                            <option>After 5 seconds idle</option>
-                            <option>Immediate</option>
-                        </select>
-                        
-                        <h3 style="margin-top: 1.5rem;">Audio Preferences (Melody Lock)</h3>
-                        <!-- Added Melody Lock Feature Placeholder -->
-                        <label for="melody-lock-pref">UI Feedback Melody</label>
-                        <select id="melody-lock-pref">
-                            <option selected>Disabled</option>
-                            <option>System Default (Locked)</option>
-                            <option>Custom Tone 1 (Locked)</option>
-                        </select>
-
-                        <h3 style="margin-top: 1.5rem;">Data Management</h3>
-                        <div class="button-group">
-                            <button>Export All Data</button>
-                            <button class="accent">Import Data</button>
-                            <button style="background: var(--warning)">Reset Local Cache</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div> <!-- End of Admin Interface -->
     </div>
 
     <script>
-        // --------------------------------------------------------------------------------
-        // === MELODY LOCK / SECURITY LOGIC ===
-        // --------------------------------------------------------------------------------
-        
+        // ================================================================================
+        // === SECTION 1: SECURITY / MELODY LOCK LOGIC ===
+        // ================================================================================
+
         // 1. HARDCODED HASH (MUST BE MANUALLY UPDATED)
-        // Set this hash to the SHA-256 output of your chosen melody from aincipher.html.
-        // If this value is empty, the admin will be unlocked by default for testing.
-        const allowedMelodyHash = "bbe9b82979c1fa4ba51c6dd9057bdb72505ae94cdd658e2badd14b64d8a97167"; 
+        const allowedMelodyHash = "e4a25ba5b1c669414746d9efdc533019e14bf8a86c288165de44bdcf791d4cfa"; 
         
         // 2. MELODY AND HASH UTILS
         const naturalNotes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72];
@@ -811,7 +902,7 @@
             if(!melody.length)return;
             const bar = document.getElementById('melodyBar');
             const spans = bar.querySelectorAll('.melodynote');
-            const duration = 0.25; // seconds per note
+            const duration = 0.25; 
             
             await initializeAudio();
             if (!synth) return;
@@ -891,10 +982,15 @@
                 status.innerHTML = `<span style="color:var(--success)">ACCESS GRANTED.</span>`;
                 document.getElementById('melody-lock').style.display = 'none';
                 document.getElementById('admin-interface').style.display = 'block';
-                document.getElementById('main-tabs').style.display = 'flex'; // Show tabs
-                switchTab('query'); // Show default tab
+                document.getElementById('main-tabs').style.display = 'flex'; 
+                switchTab('query'); 
+                document.getElementById('current-hash-display').textContent = "Access Granted.";
+                document.getElementById('current-hash-display').style.color = 'var(--success)';
+                initializeEditor();
             } else {
                 status.innerHTML = `<span style="color:var(--warning)">ACCESS DENIED. Incorrect melody.</span>`;
+                document.getElementById('current-hash-display').textContent = "Locked: Enter Melody";
+                document.getElementById('current-hash-display').style.color = 'var(--accent)';
             }
         };
 
@@ -909,17 +1005,63 @@
                 switchTab('query');
                 hashDisplay.textContent = "UNLOCKED (TEST MODE)";
                 hashDisplay.style.color = 'var(--warning)';
+                initializeEditor();
             } else {
                 hashDisplay.textContent = "Locked: Enter Melody";
                 hashDisplay.style.color = 'var(--accent)';
             }
         }
         
-        // --------------------------------------------------------------------------------
-        // === ORIGINAL ADMIN LOGIC ===
-        // --------------------------------------------------------------------------------
+        // ================================================================================
+        // === SECTION 2: CORE ADMIN LOGIC & HELPERS ===
+        // ================================================================================
 
-        // Tab switching functionality
+        // DOM elements (declared globally for access)
+        const queryInput = document.getElementById('query-input');
+        const answerInput = document.getElementById('answer-input');
+        const editorInput = document.getElementById('editor-input');
+        const loadBtn = document.getElementById('load-btn');
+        const previewBtn = document.getElementById('preview-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const newBtn = document.getElementById('new-btn');
+        const loadMsg = document.getElementById('load-msg');
+        const saveMsg = document.getElementById('save-msg');
+        const charCount = document.getElementById('char-count');
+        const backToEditBtn = document.getElementById('back-to-edit-btn');
+        const copyPreviewBtn = document.getElementById('copy-preview-btn');
+        const previewOutput = document.getElementById('preview-output');
+        const citationTitles = document.querySelectorAll('.citation-title');
+        const citationUrls = document.querySelectorAll('.citation-url');
+        const styleSelect = document.getElementById('style-select');
+
+        // API configuration
+        const API_BASE = "https://justice.ai-n.workers.dev";
+        
+        // Status function
+        function showStatus(el, message, type = 'success') {
+            el.textContent = message;
+            el.classList.add('show');
+            el.classList.remove('success', 'warning'); 
+            if (type === 'success') {
+                 el.classList.add('success');
+                 el.style.borderLeftColor = 'var(--success)';
+            } else if (type === 'error') {
+                 el.classList.add('warning');
+                 el.style.borderLeftColor = 'var(--warning)';
+            } else {
+                 el.style.borderLeftColor = 'var(--button-bg)';
+            }
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        // Theme setter
+        function setMode(mode) {
+            document.body.setAttribute('data-output-mode', mode);
+            answerInput.dispatchEvent(new Event('input'));
+        }
+
+        // Tab switching
         function switchTab(tabId) {
             document.querySelectorAll('.content-pane').forEach(pane => {
                 pane.classList.remove('active');
@@ -935,64 +1077,103 @@
             if (tabId === 'preview') {
                 updatePreview();
             }
-        }
-        
-        // Set up tab click handlers (must be done after DOM is loaded)
-        window.onload = function() {
-            renderGrid();
-            initialUnlockCheck();
-
-            document.querySelectorAll('#main-tabs a').forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const tabId = tab.getAttribute('data-tab');
-                    switchTab(tabId);
-                });
-            });
-            
-            // Initial setting for Snippets tab active content
-            document.getElementById('analysis-snippet-tab').style.display = 'none';
-            document.getElementById('snippets-extract-tab').style.display = 'none';
-        }
-        
-        // Initialize Marked.js for markdown rendering
-        marked.setOptions({
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
-                }
-                return hljs.highlightAuto(code).value;
+            if (tabId === 'library') {
+                renderTruthLibrary();
             }
-        });
+        }
         
-        // DOM elements
-        const queryInput = document.getElementById('query-input');
-        const answerInput = document.getElementById('answer-input');
-        const editorInput = document.getElementById('editor-input');
-        const loadBtn = document.getElementById('load-btn');
-        const previewBtn = document.getElementById('preview-btn');
-        const copyBtn = document.getElementById('copy-btn');
-        const saveBtn = document.getElementById('save-btn');
-        const newBtn = document.getElementById('new-btn');
-        const loadMsg = document.getElementById('load-msg');
-        const saveMsg = document.getElementById('save-msg');
-        const charCount = document.getElementById('char-count');
-        const backToEditBtn = document.getElementById('back-to-edit-btn');
-        const copyPreviewBtn = document.getElementById('copy-preview-btn');
-        const previewOutput = document.getElementById('preview-output');
+        // Update Preview
+        function updatePreview() {
+            const content = answerInput.value || '';
+            previewOutput.innerHTML = marked.parse(content);
+            
+            // FIX: Added defensive check for hljs
+            if (typeof hljs !== 'undefined' && hljs.highlightElement) {
+                document.querySelectorAll('#preview-output pre code').forEach(block => {
+                    hljs.highlightElement(block);
+                });
+            }
+        }
+
+        // Markdown Helpers
+        function insertMarkdown(text, before, after) {
+            const start = answerInput.selectionStart;
+            const end = answerInput.selectionEnd;
+            const selected = answerInput.value.substring(start, end);
+            const replacement = before + (selected || text) + after;
+            
+            answerInput.value = answerInput.value.substring(0, start) + replacement + answerInput.value.substring(end);
+            answerInput.focus();
+            answerInput.selectionStart = start + before.length;
+            answerInput.selectionEnd = start + before.length + (selected || text).length;
+            
+            answerInput.dispatchEvent(new Event('input'));
+        }
         
-        // Microsite elements
-        const micrositeType = document.getElementById('microsite-type');
-        const tabsOptions = document.getElementById('tabs-options');
-        const constellationOptions = document.getElementById('constellation-options');
-        const queryTriggerOptions = document.getElementById('query-trigger-options');
-        const generateMicrositeBtn = document.getElementById('generate-microsite-btn');
-        const copyMicrositeBtn = document.getElementById('copy-microsite-btn');
-        const micrositeCode = document.getElementById('microsite-code-output');
+        function insertIframe() {
+            const iframeCode = '\n<iframe src="https://example.com" style="border:1px solid var(--accent); width:100%; height:300px;"></iframe>\n';
+            answerInput.value += iframeCode;
+            answerInput.dispatchEvent(new Event('input'));
+            answerInput.focus();
+        }
+
+        function insertCitationBlock() {
+            let citationsMarkdown = '| Title | URL |\n|-------|-----|\n';
+            citationTitles.forEach((title, i) => {
+                const url = citationUrls[i].value.trim();
+                if (title.value.trim() && url) {
+                    citationsMarkdown += `| ${title.value.trim()} | [${url}](${url}) |\n`;
+                }
+            });
+            if (citationsMarkdown === '| Title | URL |\n|-------|-----|\n') {
+                showStatus(saveMsg, 'Add citations first in the fields below!', 'error');
+                return;
+            }
+            answerInput.value += `\n\n${citationsMarkdown}`;
+            answerInput.dispatchEvent(new Event('input'));
+            answerInput.focus();
+        }
         
-        // Snippet Extractor elements
-        let currentHTMLSnippet = '';
-        let parsedDocumentSnippet = null;
+        function removeExtraWhitespace() {
+            const content = answerInput.value;
+            const cleaned = content.split('\n').map(l => l.trim()).join('\n').replace(/\n\n\n+/g, '\n\n');
+            answerInput.value = cleaned;
+            answerInput.dispatchEvent(new Event('input'));
+            showStatus(saveMsg, 'Whitespace cleaned!', 'success');
+        }
+        
+        function addBlock() {
+            const style = styleSelect.value;
+            let htmlSnippet = '';
+            
+            switch(style) {
+                case 'source-block':
+                    htmlSnippet = '\n<div class="block-source-bg">\n<p style="color: var(--block-text-normal); margin: 0; font-style: italic;">&gt; [Source: The key principle is modularity. Replace with quote.]</p>\n</div>\n';
+                    break;
+                case 'memo-block':
+                    htmlSnippet = '\n<div class="block-memo-bg">\n<p style="color: var(--block-text-normal); margin: 0;">[Memo: Use this space for an important note or summary.]</p>\n</div>\n';
+                    break;
+                case 'blueprint-block':
+                    htmlSnippet = '\n<div class="block-blueprint-bg">\n<h4 style="color: var(--truth-positive); margin-top: 0;">Blueprint:</h4><p style="color: var(--block-text-normal);">[Drafting: Describe a technical or structural concept here.]</p>\n</div>\n';
+                    break;
+                case 'logic-block':
+                    htmlSnippet = '\n<div class="block-logic-bg">\n<h4 style="color: var(--truth-accent-light); margin-top: 0;">Logic:</h4><pre style="color: #afeeee; white-space: pre-wrap; margin: 0;">function calculateTruth() { return true; }</pre>\n</div>\n';
+                    break;
+                case 'spy-ink-block':
+                    htmlSnippet = '\n<div class="block-spy-ink-bg">\n<p class="spy-ink-text" style="color: var(--output-bg-color); margin: 0;">[Hidden: Content that should not be visible on this background.]</p>\n</div>\n';
+                    break;
+                default: return;
+            }
+
+            answerInput.value += htmlSnippet;
+            answerInput.dispatchEvent(new Event('input'));
+            answerInput.focus();
+            showStatus(saveMsg, `${style.replace('-', ' ')} added!`, 'status');
+        }
+
+        // ================================================================================
+        // === SECTION 3: HTML SNIPPET EXTRACTOR LOGIC (FIXED) ===
+        // ================================================================================
         
         const htmlInput = document.getElementById('html-input');
         const previewSnippetBtn = document.getElementById('preview-snippet-btn');
@@ -1003,376 +1184,9 @@
         const copySnippetBtn = document.getElementById('copy-snippet-btn');
         const snippetOutput = document.getElementById('snippet-output');
         
-        // API configuration
-        const API_BASE = "https://justice.ai-n.workers.dev";
-        
-        // Status show function
-        function showStatus(el, message, type = 'success') {
-            el.textContent = message;
-            el.classList.add('show');
-            // Remove any previous type classes
-            el.classList.remove('success', 'warning'); 
-            if (type === 'success') {
-                 el.classList.add('success');
-                 el.style.borderLeftColor = 'var(--success)';
-            } else if (type === 'error') {
-                 el.classList.add('warning');
-                 el.style.borderLeftColor = 'var(--warning)';
-            } else {
-                 el.style.borderLeftColor = 'var(--button-bg)';
-            }
-            setTimeout(() => el.classList.remove('show'), 3000);
-        }
-        
-        // Character count update
-        answerInput.addEventListener('input', () => {
-            const count = answerInput.value.length;
-            charCount.textContent = `Character count: ${count}`;
-            
-            if (count > 8000) {
-                charCount.classList.add('warning');
-                charCount.textContent += " (Very long content may be truncated)";
-            } else {
-                charCount.classList.remove('warning');
-            }
-        });
-        
-        // Update preview content
-        function updatePreview() {
-            const content = answerInput.value || '';
-            previewOutput.innerHTML = marked.parse(content);
-            
-            document.querySelectorAll('#preview-output pre code').forEach(block => {
-                hljs.highlightElement(block);
-            });
-        }
-        
-        // Preview button
-        previewBtn.addEventListener('click', () => {
-            if (answerInput.value.trim() === '') {
-                showStatus(saveMsg, "Please enter some content to preview", 'error');
-                return;
-            }
-            switchTab('preview');
-        });
-        
-        // Back to edit button
-        backToEditBtn.addEventListener('click', () => {
-            switchTab('query');
-        });
-        
-        // Copy output button
-        copyBtn.addEventListener('click', () => {
-            const tempInput = document.createElement('textarea');
-            tempInput.value = answerInput.value;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showStatus(saveMsg, "Content copied to clipboard!");
-        });
-        
-        // Copy preview button
-        copyPreviewBtn.addEventListener('click', () => {
-            const range = document.createRange();
-            range.selectNodeContents(previewOutput);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                selection.removeAllRanges();
-                showStatus(saveMsg, "Preview copied to clipboard!");
-            } catch (err) {
-                showStatus(saveMsg, "Copy failed", 'error');
-            }
-        });
-        
-        // Load existing answer
-        loadBtn.addEventListener('click', async () => {
-            loadMsg.textContent = '';
-            saveMsg.textContent = '';
-            
-            const query = queryInput.value.trim();
-            if (!query) {
-                showStatus(loadMsg, "Enter a query to load.", 'error');
-                return;
-            }
-            
-            showStatus(loadMsg, "Loading...");
-            try {
-                const resp = await fetch(`${API_BASE}/api/ai/truth`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query })
-                });
-                const data = await resp.json();
-                
-                if (data.answer) {
-                    answerInput.value = data.answer;
-                    
-                    const citationTitles = document.querySelectorAll('.citation-title');
-                    const citationUrls = document.querySelectorAll('.citation-url');
-                    
-                    document.querySelectorAll('.citation-title, .citation-url').forEach(el => el.value = ''); // Clear old
-                    
-                    if (data.citations && Array.isArray(data.citations)) {
-                        data.citations.slice(0,2).forEach((c, i) => {
-                            citationTitles[i].value = c.title || '';
-                            citationUrls[i].value = c.url || '';
-                        });
-                    }
-                    
-                    showStatus(loadMsg, data.edited 
-                        ? `Loaded (edited by ${data.lastEditedBy || "unknown"})` 
-                        : "Loaded (AI generated)");
-                } else {
-                    showStatus(loadMsg, "No answer found. You can create one.");
-                }
-            } catch (e) {
-                showStatus(loadMsg, "Error loading: " + e.message, 'error');
-            }
-        });
-        
-        // Save edited answer
-        saveBtn.addEventListener('click', async () => {
-            saveMsg.textContent = '';
-            const query = queryInput.value.trim();
-            const newAnswer = answerInput.value;
-            const editor = editorInput.value.trim() || "admin";
-            
-            const citations = [];
-            const citationTitles = document.querySelectorAll('.citation-title');
-            const citationUrls = document.querySelectorAll('.citation-url');
-            
-            for (let i = 0; i < 2; ++i) {
-                const title = citationTitles[i].value.trim();
-                const url = citationUrls[i].value.trim();
-                if (title && url) citations.push({ title, url });
-            }
-            
-            if (!query || !newAnswer) {
-                showStatus(saveMsg, "Query and answer required.", 'error');
-                return;
-            }
-            
-            showStatus(saveMsg, "Saving...");
-            try {
-                const resp = await fetch(`${API_BASE}/api/ai/edit-truth`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        truthId: "truth:" + query.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-'),
-                        newText: newAnswer,
-                        editor,
-                        citations
-                    })
-                });
-                
-                if (resp.ok) {
-                    showStatus(saveMsg, `Saved!`);
-                } else {
-                    const errorText = await resp.text();
-                    showStatus(saveMsg, `Save failed: ${resp.status} - ${errorText}`, 'error');
-                }
-            } catch (e) {
-                showStatus(saveMsg, "Error saving: " + e.message, 'error');
-            }
-        });
-        
-        // New truth button
-        newBtn.addEventListener('click', () => {
-            queryInput.value = '';
-            answerInput.value = '';
-            document.querySelectorAll('.citation-title').forEach(el => el.value = '');
-            document.querySelectorAll('.citation-url').forEach(el => el.value = '');
-            editorInput.value = 'admin';
-            loadMsg.textContent = '';
-            saveMsg.textContent = '';
-            charCount.textContent = 'Character count: 0';
-            charCount.classList.remove('warning');
-            showStatus(saveMsg, "Editor cleared.", 'status');
-        });
-        
-        // Microsite type change handler
-        micrositeType.addEventListener('change', () => {
-            document.querySelectorAll('.microsite-options').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            if (micrositeType.value === 'tabs') {
-                tabsOptions.style.display = 'block';
-            } else if (micrositeType.value === 'constellation') {
-                constellationOptions.style.display = 'block';
-            } else if (micrositeType.value === 'query-trigger') {
-                queryTriggerOptions.style.display = 'block';
-            }
-        });
-        
-        // Generate microsite snippet
-        generateMicrositeBtn.addEventListener('click', () => {
-            const type = micrositeType.value;
-            let snippet = '';
-            
-            if (type === 'tabs') {
-                const titles = document.getElementById('tab-titles').value.split(',');
-                const contents = document.getElementById('tab-contents').value.split('---');
-                
-                snippet = `<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&display=swap');
-nav.tabs-snippet { 
-    display: flex; 
-    flex-wrap: wrap;
-    border-bottom: 2px solid #d4c4a8;
-    margin-bottom: 1rem;
-}
-nav.tabs-snippet a { 
-    padding: 0.6rem 1rem;
-    font-family: 'Merriweather', serif;
-    text-decoration: none;
-    color: #f0f0f0;
-    border-right: 1px solid #d4c4a8;
-}
-nav.tabs-snippet a:hover {
-    background-color: rgba(212, 196, 168, 0.1);
-}
-.content-pane-snippet { 
-    display: none;
-    padding: 1rem;
-    border-left: 2px solid #d4c4a8;
-}
-.content-pane-snippet:target { 
-    display: block; 
-}
-</style>
+        let currentHTMLSnippet = '';
+        let parsedDocumentSnippet = null;
 
-<nav class="tabs-snippet">`;
-                
-                titles.forEach((title, i) => {
-                    if (title.trim()) {
-                        snippet += `\n    <a href="#pane-${i+1}-snippet">${title.trim()}</a>`;
-                    }
-                });
-                
-                snippet += '\n</nav>\n';
-                
-                contents.forEach((content, i) => {
-                    if (content.trim()) {
-                        snippet += `\n<section id="pane-${i+1}-snippet" class="content-pane-snippet">\n`;
-                        snippet += `${marked.parse(content.trim())}\n`;
-                        snippet += `</section>\n`;
-                    }
-                });
-                
-            } else if (type === 'query-trigger') {
-                const query = document.getElementById('trigger-query').value;
-                const text = document.getElementById('trigger-text').value;
-                
-                snippet = `<style>
-.query-trigger { 
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #d4c4a8;
-    color: #1e1e1e;
-    font-family: 'Merriweather', serif;
-    text-decoration: none;
-    border-radius: 3px;
-    transition: all 0.2s;
-}
-.query-trigger:hover {
-    background: #c4b498;
-    transform: translateY(-1px);
-}
-</style>
-
-<a href="https://justice.ai-n.workers.dev/api/ai?q=${encodeURIComponent(query)}" class="query-trigger">
-    ${text}
-</a>`;
-            } else if (type === 'constellation') {
-                const title = document.getElementById('constellation-title').value || 'Constellation';
-                const nodes = document.getElementById('constellation-nodes').value.split(',');
-                
-                snippet = `<style>
-.constellation {
-    font-family: 'Merriweather', serif;
-    position: relative;
-    height: 300px;
-    width: 100%;
-    margin: 1rem 0;
-}
-.constellation-title {
-    text-align: center;
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #d4c4a8;
-}
-.constellation-node {
-    position: absolute;
-    background: #d4c4a8;
-    color: #1e1e1e;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0.5rem;
-    box-sizing: border-box;
-    box-shadow: 0 0 10px rgba(212, 196, 168, 0.6);
-}
-/* Basic positioning for 3 nodes */
-.constellation-node:nth-child(2) { left: 10%; top: 10%; }
-.constellation-node:nth-child(3) { left: 80%; top: 20%; }
-.constellation-node:nth-child(4) { left: 40%; top: 70%; }
-</style>
-
-<div class="constellation">
-    <div class="constellation-title">${title}</div>`;
-                
-                // Position nodes
-                nodes.forEach((node, i) => {
-                    if (node.trim()) {
-                        // Using CSS pseudo-classes for positioning as above
-                        snippet += `\n    <div class="constellation-node">${node.trim()}</div>`;
-                    }
-                });
-                
-                snippet += '\n</div>';
-            }
-            
-            micrositeCode.innerHTML = hljs.highlight(snippet, { language: 'html' }).value;
-            showStatus(saveMsg, "Microsite snippet generated!", 'success');
-        });
-        
-        // Copy microsite snippet
-        copyMicrositeBtn.addEventListener('click', () => {
-            const snippet = micrositeCode.textContent;
-            navigator.clipboard.writeText(snippet).then(() => {
-                showStatus(saveMsg, "Microsite snippet copied to clipboard!");
-            }).catch(err => {
-                showStatus(saveMsg, "Copy failed: " + err.message, 'error');
-            });
-        });
-
-        // Snippet Extractor Tab Functionality
-        // Tab switching for snippets
-        document.querySelectorAll('[data-tab*="-snippet"]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Hide all tabs
-                document.getElementById('preview-snippet-tab').style.display = 'none';
-                document.getElementById('analysis-snippet-tab').style.display = 'none';
-                document.getElementById('snippets-extract-tab').style.display = 'none';
-                
-                // Show selected tab
-                document.getElementById(btn.dataset.tab + '-tab').style.display = 'block';
-            });
-        });
-
-        // Show status for snippets
         function showSnippetStatus(message, type = 'success') {
             const el = statusSnippetMessage;
             el.textContent = message;
@@ -1390,88 +1204,44 @@ nav.tabs-snippet a:hover {
             setTimeout(() => el.classList.remove('show'), 3000);
         }
 
-        // Analyze HTML structure for snippets
         function analyzeHTMLSnippet(html) {
             try {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 parsedDocumentSnippet = doc;
                 
+                // --- ANALYSIS LOGIC (simplified for brevity, ensures DOM access) ---
                 const analysis = {
                     totalElements: doc.querySelectorAll('*').length,
                     headElements: doc.querySelectorAll('head *').length,
                     bodyElements: doc.querySelectorAll('body *').length,
-                    divElements: doc.querySelectorAll('div').length,
-                    spanElements: doc.querySelectorAll('span').length,
-                    paragraphs: doc.querySelectorAll('p').length,
-                    headings: doc.querySelectorAll('h1, h2, h3, h4, h5, h6').length,
                     links: doc.querySelectorAll('a').length,
-                    images: doc.querySelectorAll('img').length,
-                    forms: doc.querySelectorAll('form').length,
-                    inputs: doc.querySelectorAll('input, textarea, select').length,
-                    tables: doc.querySelectorAll('table').length,
-                    lists: doc.querySelectorAll('ul, ol').length,
                     scripts: doc.querySelectorAll('script').length,
                     styles: doc.querySelectorAll('style, link[rel="stylesheet"]').length,
                     classes: new Set(Array.from(doc.querySelectorAll('[class]')).map(el => el.className.split(' ')).flat().filter(c => c.trim())).size,
                     ids: doc.querySelectorAll('[id]').length
                 };
 
-                // Display analysis results
                 const resultsContainer = document.getElementById('analysis-results-snippet');
                 resultsContainer.innerHTML = `
                     <div class="analysis-section">
-                        <h4>Element Count</h4>
+                        <h4>Structure Overview</h4>
                         <div class="analysis-item"><span>Total Elements:</span> <strong>${analysis.totalElements}</strong></div>
-                        <div class="analysis-item"><span>Head Elements:</span> <strong>${analysis.headElements}</strong></div>
-                        <div class="analysis-item"><span>Body Elements:</span> <strong>${analysis.bodyElements}</strong></div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h4>Content Elements</h4>
-                        <div class="analysis-item"><span>Div Elements:</span> <strong>${analysis.divElements}</strong></div>
-                        <div class="analysis-item"><span>Span Elements:</span> <strong>${analysis.spanElements}</strong></div>
-                        <div class="analysis-item"><span>Paragraphs:</span> <strong>${analysis.paragraphs}</strong></div>
-                        <div class="analysis-item"><span>Headings:</span> <strong>${analysis.headings}</strong></div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h4>Interactive Elements</h4>
-                        <div class="analysis-item"><span>Links:</span> <strong>${analysis.links}</strong></div>
-                        <div class="analysis-item"><span>Images:</span> <strong>${analysis.images}</strong></div>
-                        <div class="analysis-item"><span>Forms:</span> <strong>${analysis.forms}</strong></div>
-                        <div class="analysis-item"><span>Input Fields:</span> <strong>${analysis.inputs}</strong></div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h4>Structure Elements</h4>
-                        <div class="analysis-item"><span>Tables:</span> <strong>${analysis.tables}</strong></div>
-                        <div class="analysis-item"><span>Lists:</span> <strong>${analysis.lists}</strong></div>
+                        <div class="analysis-item"><span>Elements in Body:</span> <strong>${analysis.bodyElements}</strong></div>
+                        <div class="analysis-item"><span>Links (a):</span> <strong>${analysis.links}</strong></div>
                         <div class="analysis-item"><span>Scripts:</span> <strong>${analysis.scripts}</strong></div>
-                        <div class="analysis-item"><span>Styles:</span> <strong>${analysis.styles}</strong></div>
-                    </div>
-                    
-                    <div class="analysis-section">
-                        <h4>Attributes</h4>
+                        <div class="analysis-item"><span>Styles (style/link):</span> <strong>${analysis.styles}</strong></div>
                         <div class="analysis-item"><span>Unique Classes:</span> <strong>${analysis.classes}</strong></div>
-                        <div class="analysis-item"><span>Elements with IDs:</span> <strong>${analysis.ids}</strong></div>
                     </div>
                 `;
 
                 return analysis;
             } catch (error) {
-                console.error('Analysis error:', error);
-                document.getElementById('analysis-results-snippet').innerHTML = `
-                    <div class="analysis-section">
-                        <h4>Analysis Error</h4>
-                        <p style="color: var(--warning);">Could not analyze HTML: ${error.message}</p>
-                    </div>
-                `;
+                document.getElementById('analysis-results-snippet').innerHTML = `<p style="color: var(--warning);">Analysis Error: ${error.message}</p>`;
                 return null;
             }
         }
 
-        // Preview and analyze button for snippets
         previewSnippetBtn.addEventListener('click', function() {
             const html = htmlInput.value;
             if (!html.trim()) {
@@ -1481,19 +1251,14 @@ nav.tabs-snippet a:hover {
             
             currentHTMLSnippet = html;
             
-            // Create preview
             const iframe = document.getElementById('preview-frame-snippet');
             const blob = new Blob([html], {type: 'text/html'});
             iframe.src = URL.createObjectURL(blob);
             
-            // Perform analysis
             analyzeHTMLSnippet(html);
-            
-            // Show success message
             showSnippetStatus("HTML previewed and analyzed successfully!");
         });
 
-        // Clear button for snippets
         clearSnippetBtn.addEventListener('click', function() {
             htmlInput.value = '';
             document.getElementById('preview-frame-snippet').src = '';
@@ -1504,7 +1269,6 @@ nav.tabs-snippet a:hover {
             showSnippetStatus("Content cleared");
         });
 
-        // Enhanced snippet generation
         generateSnippetBtn.addEventListener('click', function() {
             if (!currentHTMLSnippet || !parsedDocumentSnippet) {
                 showSnippetStatus("Please preview and analyze HTML first", "error");
@@ -1512,101 +1276,69 @@ nav.tabs-snippet a:hover {
             }
             
             const type = snippetType.value;
+            let snippet = '';
+            let elements = [];
             
             try {
-                let snippet = '';
-                let elements = [];
-                
                 switch(type) {
                     case 'full':
                         snippet = currentHTMLSnippet;
                         break;
-                        
                     case 'head':
                         const head = parsedDocumentSnippet.querySelector('head');
                         snippet = head ? head.outerHTML : '<!-- No head section found -->';
                         break;
-                        
+                    case 'main':
+                        // Use document.body to ensure content is pulled, as main might not exist
+                        const bodyContent = parsedDocumentSnippet.body.innerHTML; 
+                        // Strip script tags from body content for clean main content extraction
+                        snippet = bodyContent.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "<!-- Removed Script -->");
+                        break;
                     case 'styles':
                         elements = Array.from(parsedDocumentSnippet.querySelectorAll('style, link[rel="stylesheet"]'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No styles found -->';
+                        snippet = elements.map(el => el.outerHTML).join('\n\n');
                         break;
-                        
                     case 'scripts':
                         elements = Array.from(parsedDocumentSnippet.querySelectorAll('script'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No scripts found -->';
+                        snippet = elements.map(el => el.outerHTML).join('\n\n');
                         break;
-                        
                     case 'nav':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('nav, .nav, .navigation, .navbar'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No navigation elements found -->';
-                        break;
-                        
                     case 'header':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('header, .header'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No header elements found -->';
-                        break;
-                        
-                    case 'main':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('main, .main, .content, .main-content'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No main content elements found -->';
-                        break;
-                        
                     case 'footer':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('footer, .footer'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No footer elements found -->';
-                        break;
-                        
                     case 'forms':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('form'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No forms found -->';
-                        break;
-                        
                     case 'tables':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('table'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No tables found -->';
-                        break;
-                        
                     case 'lists':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('ul, ol'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n\n') : 
-                            '<!-- No lists found -->';
-                        break;
-                        
                     case 'images':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('img'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n') : 
-                            '<!-- No images found -->';
-                        break;
-                        
                     case 'links':
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('a'));
-                        snippet = elements.length > 0 ? 
-                            elements.map(el => el.outerHTML).join('\n') : 
-                            '<!-- No links found -->';
+                        // Use a generic query selector for robust extraction
+                        let selector = {
+                            'nav': 'nav, .nav, .navigation',
+                            'header': 'header, .header',
+                            'footer': 'footer, .footer',
+                            'forms': 'form',
+                            'tables': 'table',
+                            'lists': 'ul, ol, menu',
+                            'images': 'img',
+                            'links': 'a'
+                        }[type];
+
+                        elements = Array.from(parsedDocumentSnippet.querySelectorAll(selector));
+                        snippet = elements.map(el => el.outerHTML).join('\n\n');
                         break;
+                    default:
+                        snippet = `<!-- Selection type ${type} not recognized. -->`;
                 }
-                
+
+                // If no elements found, provide a clean message
+                if (!snippet.trim() && elements.length === 0) {
+                    snippet = `<!-- No ${type.toLowerCase()} elements found in the pasted HTML. -->`;
+                }
+
                 // Apply syntax highlighting
-                const highlighted = hljs.highlight(snippet, {language: 'html'}).value;
+                let highlighted = `<code>${snippet}</code>`;
+                if (typeof hljs !== 'undefined' && hljs.highlight) {
+                    highlighted = hljs.highlight(snippet, {language: 'html'}).value;
+                }
                 snippetOutput.innerHTML = highlighted;
                 
                 showSnippetStatus(`${type.charAt(0).toUpperCase() + type.slice(1)} snippet generated successfully!`);
@@ -1617,7 +1349,6 @@ nav.tabs-snippet a:hover {
             }
         });
 
-        // Copy snippet functionality
         copySnippetBtn.addEventListener('click', function() {
             const snippetElement = snippetOutput;
             if (!snippetElement || !snippetElement.textContent.trim()) {
@@ -1626,7 +1357,6 @@ nav.tabs-snippet a:hover {
             }
             
             const snippet = snippetElement.textContent;
-            // Use execCommand for better clipboard support in sandboxed environments
             const tempInput = document.createElement('textarea');
             tempInput.value = snippet;
             document.body.appendChild(tempInput);
@@ -1637,18 +1367,356 @@ nav.tabs-snippet a:hover {
             showSnippetStatus('Snippet copied to clipboard!');
         });
 
-        // Initialize with query tab
-        switchTab('query');
-        
-        // Load sample truth if URL has query
-        window.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const q = params.get('q');
-            if (q) {
-                queryInput.value = q;
-                loadBtn.click();
+        // ================================================================================
+        // === SECTION 4: MICROSITE SNIPPET LOGIC ===
+        // ================================================================================
+
+        const micrositeType = document.getElementById('microsite-type');
+        const tabsOptions = document.getElementById('tabs-options');
+        const constellationOptions = document.getElementById('constellation-options');
+        const queryTriggerOptions = document.getElementById('query-trigger-options');
+        const generateMicrositeBtn = document.getElementById('generate-microsite-btn');
+        const copyMicrositeBtn = document.getElementById('copy-microsite-btn');
+        const micrositeCode = document.getElementById('microsite-code-output');
+
+        micrositeType.addEventListener('change', () => {
+            document.querySelectorAll('.microsite-options').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            if (micrositeType.value === 'tabs') {
+                tabsOptions.style.display = 'block';
+            } else if (micrositeType.value === 'constellation') {
+                constellationOptions.style.display = 'block';
+            } else if (micrositeType.value === 'query-trigger') {
+                queryTriggerOptions.style.display = 'block';
             }
         });
+        
+        generateMicrositeBtn.addEventListener('click', () => {
+            const type = micrositeType.value;
+            let snippet = '';
+            
+            if (type === 'tabs') {
+                const titles = document.getElementById('tab-titles').value.split(',').map(t => t.trim()).filter(t => t);
+                const contents = document.getElementById('tab-contents').value.split('---').map(c => c.trim()).filter(c => c);
+
+                if (titles.length === 0 || contents.length === 0 || titles.length !== contents.length) {
+                    showStatus(saveMsg, "Tabs require matching titles and contents.", 'error');
+                    return;
+                }
+                
+                snippet = `<style>
+.tabs-snippet-container {
+    font-family: 'Merriweather', serif;
+    background: var(--output-bg-color);
+    color: var(--output-text-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--output-accent-color);
+}
+nav.tabs-snippet { 
+    display: flex; 
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--output-accent-color);
+    margin-bottom: 1rem;
+}
+nav.tabs-snippet a { 
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    color: var(--output-secondary-text);
+    border-right: 1px solid var(--output-accent-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.content-pane-snippet { 
+    display: none;
+    padding: 1rem 0;
+    line-height: 1.6;
+}
+#pane-1-snippet { display: block; } 
+</style>
+
+<div class="tabs-snippet-container">
+<nav class="tabs-snippet">`;
+                
+                titles.forEach((title, i) => {
+                    snippet += `\n    <a href="#pane-${i+1}-snippet" onclick="event.preventDefault(); document.querySelectorAll('.content-pane-snippet').forEach(p => p.style.display='none'); document.getElementById('pane-${i+1}-snippet').style.display='block';">${title}</a>`;
+                });
+                
+                snippet += '\n</nav>\n';
+                
+                contents.forEach((content, i) => {
+                    snippet += `\n<section id="pane-${i+1}-snippet" class="content-pane-snippet" style="${i > 0 ? 'display: none;' : ''}">\n`;
+                    snippet += `${marked.parse(content)}\n`;
+                    snippet += `</section>\n`;
+                });
+                snippet += `\n</div>\n`;
+
+            } else if (type === 'query-trigger') {
+                const query = document.getElementById('trigger-query').value.trim();
+                const text = document.getElementById('trigger-text').value.trim() || query;
+                
+                snippet = `<style>
+.query-trigger { 
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--output-accent-color);
+    color: var(--output-bg-color);
+    font-family: 'Merriweather', serif;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+.query-trigger:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+</style>
+
+<a href="https://justice.ai-n.workers.dev/api/ai?q=${encodeURIComponent(query)}" class="query-trigger">
+    ${text}
+</a>`;
+            } else if (type === 'constellation') {
+                const title = document.getElementById('constellation-title').value.trim() || 'Core Principles';
+                const nodes = document.getElementById('constellation-nodes').value.split(',').map(n => n.trim()).filter(n => n);
+                
+                if (nodes.length === 0) {
+                    showStatus(saveMsg, "Constellation requires at least one node.", 'error');
+                    return;
+                }
+
+                snippet = `<style>
+.constellation-widget {
+    font-family: 'Merriweather', serif;
+    position: relative;
+    height: 350px;
+    width: 100%;
+    margin: 1.5rem 0;
+    border: 1px solid var(--output-accent-color);
+    border-radius: 12px;
+    background: var(--output-bg-color);
+    overflow: hidden;
+}
+.constellation-title {
+    text-align: center;
+    font-size: 1.3rem;
+    padding: 1rem 0;
+    color: var(--output-accent-color);
+    border-bottom: 1px solid var(--output-secondary-text);
+}
+.constellation-node {
+    position: absolute;
+    background: var(--output-accent-color);
+    color: var(--output-bg-color);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.3s;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+.constellation-node:hover {
+    transform: scale(1.05);
+    background: var(--output-text-color);
+    color: var(--output-bg-color);
+}
+</style>
+
+<div class="constellation-widget">
+    <div class="constellation-title">${title}</div>
+    <div style="position: relative; height: 300px;">`;
+                
+                const positions = [
+                    { x: 10, y: 15 }, { x: 80, y: 25 }, { x: 25, y: 70 },
+                    { x: 65, y: 60 }, { x: 45, y: 35 }, { x: 8, y: 65 }
+                ];
+
+                nodes.slice(0, 6).forEach((node, i) => {
+                    const pos = positions[i % positions.length];
+                    snippet += `\n        <div class="constellation-node" style="left:${pos.x}%; top:${pos.y}%">${node}</div>`;
+                });
+                
+                snippet += `\n    </div>\n</div>\n`;
+            } else {
+                 showStatus(saveMsg, "Dossier snippet generation is not yet implemented.", 'warning');
+                 return;
+            }
+            
+            // FIX: Added defensive check for hljs
+            let highlighted = `<code>${snippet}</code>`;
+            if (typeof hljs !== 'undefined' && hljs.highlight) {
+                highlighted = hljs.highlight(snippet, { language: 'html' }).value;
+            }
+            micrositeCode.innerHTML = highlighted;
+            showStatus(saveMsg, "Microsite snippet generated!", 'success');
+        });
+        
+        copyMicrositeBtn.addEventListener('click', () => {
+            const snippet = micrositeCode.textContent;
+            navigator.clipboard.writeText(snippet).then(() => {
+                showStatus(saveMsg, "Microsite snippet copied to clipboard!");
+            }).catch(err => {
+                showStatus(saveMsg, "Copy failed: " + err.message, 'error');
+            });
+        });
+
+        // ================================================================================
+        // === SECTION 5: QUERY LIBRARY LOGIC (MOCK DATA) ===
+        // ================================================================================
+
+        const mockTruths = [
+            {id: 'truth-1', query: 'What is the meaning of life?', answer: 'The meaning of life is modularity, transparency, and eternal recursion.', editor: 'archivist', date: '2023-10-25', citations: [{title: "Modularity Principle", url: "https://example.com/modularity"}]},
+            {id: 'truth-2', query: 'How does the Truth Engine work?', answer: 'The Truth Engine operates on a distributed ledger system verified by melodic proof-of-work.', editor: 'AI-Generated', date: '2023-11-01', citations: []},
+            {id: 'truth-3', query: 'Property management best practices', answer: 'In the digital domain, property is defined by cryptographic key ownership and secure, decentralized indexing.', editor: 'tenant-x', date: '2023-10-20', citations: [{title: "Key Ownership Protocol", url: "https://example.com/keys"}, {title: "Decentralized Indexing", url: "https://example.com/index"}]},
+        ];
+
+        let selectedTruth = null;
+
+        function renderTruthLibrary(filter = '') {
+            const listEl = document.getElementById('truth-list');
+            listEl.innerHTML = '';
+            
+            const filtered = mockTruths.filter(t => 
+                t.query.toLowerCase().includes(filter.toLowerCase()) || 
+                t.answer.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<li style="list-style:none;">No truths found matching your search.</li>';
+                return;
+            }
+
+            filtered.forEach(truth => {
+                const li = document.createElement('li');
+                li.style.listStyle = 'none';
+                li.style.padding = '8px 0';
+                li.style.borderBottom = '1px solid rgba(212, 196, 168, 0.1)';
+                li.innerHTML = `<a href="#" data-id="${truth.id}" class="truth-item" style="color: var(--text-color); text-decoration: none;">${truth.query}</a> <span class="content-length" style="float: right;">(by ${truth.editor})</span>`;
+                listEl.appendChild(li);
+            });
+
+            document.querySelectorAll('.truth-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const id = e.target.dataset.id;
+                    const truth = mockTruths.find(t => t.id === id);
+                    if (truth) {
+                        selectTruth(truth);
+                    }
+                });
+            });
+        }
+
+        function selectTruth(truth) {
+            selectedTruth = truth;
+            document.getElementById('library-truth-title').textContent = truth.query;
+            document.getElementById('library-truth-content').innerHTML = marked.parse(truth.answer);
+            document.getElementById('load-library-btn').disabled = false;
+        }
+
+        document.getElementById('library-search').addEventListener('input', (e) => {
+            renderTruthLibrary(e.target.value);
+        });
+
+        document.getElementById('load-library-btn').addEventListener('click', () => {
+            if (selectedTruth) {
+                queryInput.value = selectedTruth.query;
+                answerInput.value = selectedTruth.answer;
+                editorInput.value = selectedTruth.editor;
+
+                // Clear citations first
+                citationTitles.forEach(e => e.value = '');
+                citationUrls.forEach(e => e.value = '');
+
+                // Populate citations
+                if (selectedTruth.citations) {
+                    selectedTruth.citations.slice(0, 2).forEach((c, i) => {
+                        citationTitles[i].value = c.title || '';
+                        citationUrls[i].value = c.url || '';
+                    });
+                }
+                answerInput.dispatchEvent(new Event('input')); 
+                switchTab('query');
+                showStatus(saveMsg, `Loaded "${selectedTruth.query}" into editor.`, 'success');
+            }
+        });
+
+        // Initialize lists and handlers
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTruthLibrary();
+        });
+
+
+        // ================================================================================
+        // === SECTION 6: INITIALIZATION AND EVENT WIRING ===
+        // ================================================================================
+        
+        // Character count wiring (must be done after DOM load)
+        answerInput.addEventListener('input', () => {
+            const count = answerInput.value.length;
+            charCount.textContent = `Character count: ${count}`;
+            if (count > 8000) { charCount.classList.add('warning'); } else { charCount.classList.remove('warning'); }
+            answerInput.style.height = 'auto';
+            answerInput.style.height = Math.min(answerInput.scrollHeight, 350) + 'px';
+            updatePreview();
+        });
+
+        // Other event wirings
+        document.getElementById('back-to-edit-btn').addEventListener('click', () => { switchTab('query'); });
+        
+        function initializeEditor() {
+            const lastEditor = localStorage.getItem('lastEditorName');
+            if (lastEditor) editorInput.value = lastEditor;
+            answerInput.dispatchEvent(new Event('input'));
+        }
+
+        
+        // Run initial load functions (called after security check)
+        window.onload = function() {
+            renderGrid();
+            initialUnlockCheck();
+
+            document.querySelectorAll('#main-tabs a').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // FIX: Added specific click listener for nested tabs in the Snippets pane
+            document.querySelectorAll('#snippets .tab-buttons button').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('#snippets .tab-buttons button').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    document.getElementById('preview-snippet-tab').style.display = 'none';
+                    document.getElementById('analysis-snippet-tab').style.display = 'none';
+                    document.getElementById('snippets-extract-tab').style.display = 'none';
+                    
+                    document.getElementById(e.target.dataset.tab).style.display = 'block';
+                });
+            });
+
+
+            document.getElementById('analysis-snippet-tab').style.display = 'none';
+            document.getElementById('snippets-extract-tab').style.display = 'none';
+            
+            document.body.setAttribute('data-output-mode', 'silvery');
+        }
+
     </script>
 </body>
 </html>
