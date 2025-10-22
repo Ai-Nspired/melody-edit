@@ -1036,6 +1036,7 @@
         const styleSelect = document.getElementById('style-select');
 
         // API configuration
+        // NOTE: Hardcoding API base. If this needs to be changed dynamically, a Settings tab needs to be re-added.
         const API_BASE = "https://justice.ai-n.workers.dev";
         
         // Status function
@@ -1171,6 +1172,136 @@
             showStatus(saveMsg, `${style.replace('-', ' ')} added!`, 'status');
         }
 
+        // --- UPDATED LOAD QUERY FUNCTION ---
+        loadBtn.addEventListener('click', async () => {
+            loadMsg.textContent = '';
+            saveMsg.textContent = '';
+            
+            const query = queryInput.value.trim();
+            if (!query) {
+                showStatus(loadMsg, "Enter a query to load.", 'error');
+                return;
+            }
+            
+            showStatus(loadMsg, "Loading...");
+            
+            // Clear previous content while loading
+            answerInput.value = '';
+            citationTitles.forEach(el => el.value = '');
+            citationUrls.forEach(el => el.value = '');
+
+            try {
+                // Ensure the API_BASE is properly configured
+                if (!API_BASE) {
+                    showStatus(loadMsg, "API Endpoint is missing. Please configure the API_BASE constant in the script.", 'error');
+                    return;
+                }
+                
+                const resp = await fetch(`${API_BASE}/api/ai/truth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query })
+                });
+
+                if (!resp.ok) {
+                    const errorText = await resp.text();
+                    showStatus(loadMsg, `Error loading truth. Status: ${resp.status}. Message: ${errorText.substring(0, 50)}...`, 'error');
+                    return;
+                }
+
+                const data = await resp.json();
+                
+                if (data.answer) {
+                    answerInput.value = data.answer;
+                    
+                    if (data.citations && Array.isArray(data.citations)) {
+                        data.citations.slice(0,2).forEach((c, i) => {
+                            citationTitles[i].value = c.title || '';
+                            citationUrls[i].value = c.url || '';
+                        });
+                    }
+                    
+                    showStatus(loadMsg, data.edited 
+                        ? `Loaded (edited by ${data.lastEditedBy || "unknown"})` 
+                        : "Loaded (AI generated)");
+                } else {
+                    showStatus(loadMsg, "No answer found for this query. Ready to create a new truth.");
+                }
+                
+                answerInput.dispatchEvent(new Event('input')); // Trigger update for char count/preview
+            } catch (e) {
+                // This catches network errors (e.g., failed CORS, DNS resolution)
+                console.error("Fetch Error:", e);
+                showStatus(loadMsg, `Network Error: Could not connect to API. Check console for details.`, 'error');
+            }
+        });
+        
+        // Save edited answer
+        saveBtn.addEventListener('click', async () => {
+            saveMsg.textContent = '';
+            const query = queryInput.value.trim();
+            const newAnswer = answerInput.value;
+            const editor = editorInput.value.trim() || "admin";
+            
+            const citations = [];
+            const citationTitles = document.querySelectorAll('.citation-title');
+            const citationUrls = document.querySelectorAll('.citation-url');
+            
+            for (let i = 0; i < 2; ++i) {
+                const title = citationTitles[i].value.trim();
+                const url = citationUrls[i].value.trim();
+                if (title && url) citations.push({ title, url });
+            }
+            
+            if (!query || !newAnswer) {
+                showStatus(saveMsg, "Query and answer required.", 'error');
+                return;
+            }
+
+            if (!API_BASE) {
+                showStatus(saveMsg, "API Endpoint is missing. Please configure the API_BASE constant in the script.", 'error');
+                return;
+            }
+            
+            showStatus(saveMsg, "Saving...");
+            try {
+                const resp = await fetch(`${API_BASE}/api/ai/edit-truth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        truthId: "truth:" + query.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '-'),
+                        newText: newAnswer,
+                        editor,
+                        citations
+                    })
+                });
+                
+                if (resp.ok) {
+                    showStatus(saveMsg, `Saved!`);
+                } else {
+                    const errorText = await resp.text();
+                    showStatus(saveMsg, `Save failed: ${resp.status} - ${errorText.substring(0, 50)}...`, 'error');
+                }
+            } catch (e) {
+                console.error("Fetch Error:", e);
+                showStatus(saveMsg, "Network Error: Could not connect to API.", 'error');
+            }
+        });
+        
+        // New truth button
+        newBtn.addEventListener('click', () => {
+            queryInput.value = '';
+            answerInput.value = '';
+            citationTitles.forEach(el => el.value = '');
+            citationUrls.forEach(el => el.value = '');
+            editorInput.value = localStorage.getItem('lastEditorName') || 'admin';
+            loadMsg.textContent = '';
+            saveMsg.textContent = '';
+            charCount.textContent = 'Character count: 0';
+            charCount.classList.remove('warning');
+            answerInput.dispatchEvent(new Event('input'));
+        });
+        
         // ================================================================================
         // === SECTION 3: HTML SNIPPET EXTRACTOR LOGIC (FIXED) ===
         // ================================================================================
