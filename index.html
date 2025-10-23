@@ -743,8 +743,6 @@
                             <option value="head">Head Section</option>
                             <option value="styles">All Styles</option>
                             <option value="scripts">All Scripts</option>
-                            <option value="iframes">iFrames</option>
-                            <option value="query_links">Query Links (API/q=)</option>
                             <option value="nav">Navigation Elements</option>
                             <option value="header">Header Section</option>
                             <option value="main">Main Content</option>
@@ -753,7 +751,7 @@
                             <option value="tables">Table Elements</option>
                             <option value="lists">List Elements</option>
                             <option value="images">Image Elements</option>
-                            <option value="links">All Links (a)</option>
+                            <option value="links">Link Elements</option>
                         </select>
                         <button id="generate-snippet-btn" class="accent" style="flex-grow: 0;">Generate</button>
                         <button id="copy-snippet-btn" style="flex-grow: 0;">Copy</button>
@@ -848,7 +846,7 @@
         // ================================================================================
 
         // 1. HARDCODED HASH (MUST BE MANUALLY UPDATED)
-        const allowedMelodyHash = "bbe9b82979c1fa4ba51c6dd9057bdb72505ae94cdd658e2badd14b64d8a97167"; 
+        const allowedMelodyHash = "742514757c689a8fb1fd1eeedd6fe507ee971ff2443269d1986e06df1b9b65b9"; 
         
         // 2. MELODY AND HASH UTILS
         const naturalNotes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72];
@@ -1435,18 +1433,6 @@
                         elements = Array.from(parsedDocumentSnippet.querySelectorAll('script'));
                         snippet = elements.map(el => el.outerHTML).join('\n\n');
                         break;
-                    case 'iframes': // NEW: Dedicated iFrame extraction
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('iframe'));
-                        snippet = elements.map(el => el.outerHTML).join('\n\n');
-                        break;
-                    case 'query_links': // NEW: Dedicated Query Link extraction
-                        // Find all <a> tags whose href contains the API_BASE and a query parameter
-                        elements = Array.from(parsedDocumentSnippet.querySelectorAll('a')).filter(a => {
-                            const href = a.getAttribute('href') || '';
-                            return href.includes(API_BASE) && href.includes('?q=');
-                        });
-                        snippet = elements.map(el => el.outerHTML).join('\n\n');
-                        break;
                     case 'nav':
                     case 'header':
                     case 'footer':
@@ -1476,11 +1462,8 @@
 
                 // If no elements found, provide a clean message
                 if (!snippet.trim() && elements.length === 0) {
-                    snippet = `<!-- No ${type.toLowerCase().replace('_', ' ')} elements found in the pasted HTML. -->`;
+                    snippet = `<!-- No ${type.toLowerCase()} elements found in the pasted HTML. -->`;
                 }
-
-                // Store the raw snippet before highlighting for copying
-                snippetOutput.dataset.raw = snippet;
 
                 // Apply syntax highlighting
                 let highlighted = `<code>${snippet}</code>`;
@@ -1489,7 +1472,7 @@
                 }
                 snippetOutput.innerHTML = highlighted;
                 
-                showSnippetStatus(`${type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')} snippet generated successfully!`);
+                showSnippetStatus(`${type.charAt(0).toUpperCase() + type.slice(1)} snippet generated successfully!`);
                 
             } catch (e) {
                 snippetOutput.innerHTML = `<code>ERROR: ${e.message}</code>`;
@@ -1497,17 +1480,16 @@
             }
         });
 
-        // UPDATED: Copy snippet functionality to use the raw, un-highlighted string
         copySnippetBtn.addEventListener('click', function() {
-            const rawSnippet = snippetOutput.dataset.raw || snippetOutput.textContent; // Use raw data if available, fallback to textContent
-            
-            if (!rawSnippet.trim()) {
+            const snippetElement = snippetOutput;
+            if (!snippetElement || !snippetElement.textContent.trim()) {
                 showSnippetStatus("No snippet to copy", "error");
                 return;
             }
             
+            const snippet = snippetElement.textContent;
             const tempInput = document.createElement('textarea');
-            tempInput.value = rawSnippet;
+            tempInput.value = snippet;
             document.body.appendChild(tempInput);
             tempInput.select();
             document.execCommand('copy');
