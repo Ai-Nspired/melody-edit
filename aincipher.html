@@ -1,404 +1,458 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>ai-nspired cipher melody</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&family=Cutive+Mono&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-  <style>
-    :root {
-      --b: #0d0d0d;
-      --p: #f0f0f0;
-      --s: #1a1a1a;
-      --y: #d4c4a8;
-      --bg: #1e1e1e;
-      --bd: #2a2a2a;
-      --g: rgba(212, 196, 168, .6);
-      --success: #00ff8c;
-      --warning: #ff5050;
-      --melody-note: #d4c4a8;
-      --melody-note-active: #00ff8c;
-    }
-    * { box-sizing: border-box; transition: all .3s ease; }
-    body { margin: 0; background-color: var(--b); color: var(--p); font-family: 'Merriweather', serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 20px; text-align: center; background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'); }
-    .glasscard { max-width: 800px; width: 100%; padding: 3rem; background-color: var(--s); box-shadow: 0 15px 40px rgba(0,0,0,.5), 0 0 25px var(--g); border-top: 5px solid var(--y); border-radius: 8px; }
-    .glasscard h1 { font-family: 'Cinzel', serif; font-size: clamp(1.5rem, 3vw, 2.5rem); color: var(--y); margin: .2rem 0; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; line-height: 1.2; text-shadow: 0 0 15px var(--g); }
-    .info { font-size: clamp(.9rem, 1.5vw, 1.1rem); color: var(--p); margin-top: 1rem; border-bottom: 1px solid var(--bd); padding-bottom: 1.5rem; line-height: 1.6; }
-    label { display: block; margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: bold; color: var(--y); font-family: 'Cinzel', serif; font-size: 1.1rem; }
-    input[type="text"], textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--y); border-radius: 6px; background: var(--bg); color: var(--p); font-family: 'Cutive Mono', monospace; font-size: 0.95rem; box-sizing: border-box; margin-bottom: 0.5rem; outline: none; transition: all .3s ease; }
-    input[type="text"]:focus, textarea:focus { border-color: var(--y); box-shadow: 0 0 8px var(--g); background: #2a2a2a; }
-    textarea { min-height: 150px; resize: vertical; }
-    .codebox { background: var(--bg); color: var(--p); font-family: 'Cutive Mono', monospace; font-size: 1.1rem; padding: 1rem; border-radius: 6px; margin: 1rem 0; border: 1.5px solid var(--y); box-shadow: 0 0 8px rgba(212,196,168,.33) inset; text-align: left; overflow-x: auto; white-space: pre; }
-    .piano-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 1rem 0; padding: 1rem; background: var(--bg); border-radius: 8px; border: 1px solid var(--y); }
-    .note-btn { height: 60px; border: 2px solid var(--y); border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(212, 196, 168, .3); color: #000; transition: all .2s ease; background: linear-gradient(145deg, #f8f8f8 0%, #e8e8e8 100%); }
-    .note-btn:hover { transform: scale(1.02); box-shadow: 0 0 10px var(--g); }
-    .note-btn.active { background: var(--success); color: #000; transform: scale(0.98); box-shadow: 0 0 15px var(--success); }
-    .melody-controls { margin: 1em 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    .melody-controls button { margin: 0; border-radius: 6px; padding: 9px 18px; background: var(--y); color: #000; font-size: 1rem; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(212,196,168,.3); transition: all .15s; }
-    .melody-controls button:hover { background: #c4b498; transform: translateY(-1px); }
-    .melodybar { margin: 0.5em 0; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-    .melodynote { display: inline-block; background: var(--melody-note); color: #000; font-weight: bold; font-size: 0.85rem; padding: 4px 10px; border-radius: 18px; margin: 2px; box-shadow: 0 1px 3px rgba(212, 196, 168, .4); transition: all .15s; animation: pulse 0.3s ease-out; }
-    @keyframes pulse { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
-    .melodynote.playing { background: var(--melody-note-active); box-shadow: 0 0 10px var(--melody-note-active); }
-    .hash-flex { display: flex; align-items: center; gap: 10px; margin: 1em 0; justify-content: center; flex-wrap: wrap; }
-    .hash-label { color: var(--y); font-weight: bold; font-family: 'Cinzel', serif; }
-    #fullHash { font-family: 'Cutive Mono', monospace; font-size: 0.9rem; word-break: break-all; background: var(--bg); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--y); max-width: 300px; }
-    .export-box { background: var(--bg); color: var(--p); font-family: 'Cutive Mono', monospace; font-size: 1rem; padding: 0.8em; border-radius: 6px; margin: 1em 0; border: 1.5px solid var(--y); box-shadow: 0 0 8px rgba(212,196,168,.33) inset; cursor: pointer; text-align: center; }
-    .import-group { margin: 0.8em 0 0.5em; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    .import-group input[type="text"] { width: 180px; font-size: 0.95rem; padding: 8px 10px; border-radius: 6px; border: 1.5px solid var(--y); background: var(--bg); color: var(--p); }
-    .import-group button { padding: 8px 16px; font-size: 0.95rem; border-radius: 6px; background: var(--y); color: #000; border: none; font-weight: 600; cursor: pointer; }
-    .import-group button:hover { background: #c4b498; }
-    .outbox { background: rgba(212,196,168,.05); padding: 1.5em; border-radius: 8px; margin-top: 2em; border: 1.5px solid var(--y); box-shadow: 0 0 8px rgba(212,196,168,.33); }
-    #decodeStatus { margin: 1rem 0; font-weight: bold; }
-    .success { color: var(--success); }
-    .fail { color: var(--warning); }
-    @media (max-width: 768px) {
-      .glasscard { padding: 1.5rem; }
-      .piano-container { grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0.8rem; }
-      .note-btn { height: 55px; font-size: 0.8rem; }
-      .melody-controls button { padding: 7px 14px; font-size: 0.9rem; }
-    }
-    @media (max-width: 480px) {
-      .piano-container { gap: 6px; padding: 0.5rem; }
-      .note-btn { min-height: 50px; font-size: 0.75rem; }
-      .melody-controls { gap: 6px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>ai-nspired cipher melody</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&family=Cutive+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+<style>
+:root{
+  --b:#0d0d0d;--p:#f0f0f0;--s:#1a1a1a;--y:#d4c4a8;--bg:#1e1e1e;--bd:#2a2a2a;
+  --g:rgba(212,196,168,.6);--success:#00ff8c;--warning:#ff5050;
+  --melody-note:#d4c4a8;--melody-note-active:#00ff8c;--secondary:#9fa8da;
+  --edit:#ffab00;
+}
+*{box-sizing:border-box;transition:all .3s ease}
+body{margin:0;background:var(--b);color:var(--p);font-family:'Merriweather',serif;display:flex;flex-direction:column;align-items:center;padding:40px 20px 20px;text-align:center;background-image:url('https://www.transparenttextures.com/patterns/dark-matter.png')}
+.glasscard{max-width:800px;width:100%;padding:3rem;background:var(--s);box-shadow:0 15px 40px rgba(0,0,0,.5),0 0 25px var(--g);border-top:5px solid var(--y);border-radius:8px}
+h1{font-family:'Cinzel',serif;color:var(--y);font-size:clamp(1.5rem,3vw,2.5rem);margin:.2rem 0;font-weight:700;text-transform:uppercase;letter-spacing:.15em;text-shadow:0 0 15px var(--g)}
+
+/* ---------- PIANO GRID ---------- */
+.piano-container{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:1rem 0;padding:1rem;background:var(--bg);border:1px solid var(--y);border-radius:8px}
+.note-btn{height:60px;border:2px solid var(--y);border-radius:8px;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(212,196,168,.3);color:#000;background:linear-gradient(145deg,#f8f8f8,#e8e8f8)}
+.note-btn:hover{transform:scale(1.02);box-shadow:0 0 10px var(--g)}
+.note-btn.active{background:var(--success);color:#000;transform:scale(.98);box-shadow:0 0 15px var(--success)}
+
+/* ---------- MELODY BAR ---------- */
+.melodybar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:40px;margin:.5rem 0}
+.melodynote{display:inline-block;background:var(--melody-note);color:#000;font-weight:bold;font-size:.85rem;padding:4px 10px;border-radius:18px;box-shadow:0 1px 3px rgba(212,196,168,.4);cursor:pointer}
+.melodynote.playing{background:var(--melody-note-active);box-shadow:0 0 10px var(--melody-note-active)}
+.melodynote.rest{background:var(--bg);color:var(--secondary);border:1px dashed var(--y);min-width:40px}
+.melodynote.active-edit{border:2px solid var(--edit);box-shadow:0 0 10px var(--edit);transform:scale(1.05)}
+
+/* ---------- BUTTONS ---------- */
+.melody-controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:1rem 0}
+.melody-controls button{padding:9px 18px;border-radius:6px;background:var(--bg);color:var(--y);border:1px solid var(--y);cursor:pointer;font-weight:600}
+.melody-controls button:hover{background:var(--bd);transform:translateY(-1px)}
+#togglePlayBtn,#togglePlayBtn2{background:var(--edit);color:#000;border-color:var(--edit)}
+#deleteNoteBtn,#deleteNoteBtn2{background:var(--warning);color:#000;border-color:var(--warning)}
+#saveMelodyBtn{background:var(--success);color:#000;border-color:var(--success)}
+#encodeBtn{background:var(--y);color:#000;padding:9px 25px}
+
+/* ---------- RHYTHM BLOCK ---------- */
+.rhythm-block{max-width:400px;margin:1.5rem auto .5rem;padding:1rem;background:var(--bd);border:1px solid var(--y);border-radius:8px}
+.rhythm-block h4{margin:0 0 .8rem;color:var(--y);text-transform:uppercase;font-size:1.1em}
+.button-row{display:flex;gap:10px;justify-content:center}
+.rhythm-block button{background:var(--bg);color:var(--y);border:1px solid var(--y);padding:5px 10px;width:80px;font-size:0.9em}
+.rhythm-block button.selected-duration{background:var(--edit);color:#000}
+
+/* ---------- ACCORDION ---------- */
+.accordion-header{cursor:pointer;background:var(--bd);color:var(--y);padding:10px;border-radius:6px 6px 0 0;display:flex;justify-content:space-between;align-items:center;font-family:'Cinzel',serif;font-weight:700;border:1px solid var(--y);border-bottom:none}
+.accordion-content{max-height:0;overflow:hidden;transition:max-height .4s ease-out;padding:0 1rem;background:var(--s);border:1px solid var(--y);border-top:none;border-radius:0 0 6px 6px}
+.accordion-content.expanded{max-height:600px;padding:1rem}
+.accordion-icon{transition:transform .3s}
+.accordion-icon.rotated{transform:rotate(90deg)}
+</style>
 </head>
+
 <body>
-  <div class="glasscard">
-    <h1>the architect cipher</h1>
-    <div class="info">
-      <b>Cipher:</b> Type & encode a message. Tap notes in the color grid to create a melody as your password. Save the melody hash.<br>
-      <b>Unlock:</b> Paste encoded string. Tap the same melody in the grid to decode.<br>
-      <b>Tip:</b> Grids show natural notes C3 to C5, colored by pitch. Tap to play/add to melody. Max 32 notes. 4 columns across on all devices.
-    </div>
+<div class="glasscard">
+  <h1>the architect cipher</h1>
 
-    <!-- Encode Section -->
-    <label for="encodeInput">Text to Encode:</label>
+  <!-- ==== ENCODE ==== -->
+  <div class="accordion-header" onclick="toggle('encode')">Text to Encode <span class="accordion-icon">></span></div>
+  <div class="accordion-content" id="encode">
     <textarea id="encodeInput" placeholder="Enter message"></textarea>
-    <button id="encodeBtn">Encode</button>
-    <label>Encoded Code String:</label>
-    <div class="codebox" id="codeStringDisplay" contenteditable="true" spellcheck="false"></div>
+    <button id="encodeBtn">ENCODE TEXT</button>
+  </div>
 
-    <label>Color Grid: Tap melody (your password!)</label>
-    <div class="piano-container" id="pianoContainer1"></div>
+  <div class="accordion-header" onclick="toggle('code')">Encoded Code String <span class="accordion-icon">></span></div>
+  <div class="accordion-content" id="code"><div class="codebox" id="codeStringDisplay" contenteditable spellcheck="false"></div></div>
 
-    <div class="melody-controls">
-      <button id="clearMelodyBtn">Clear Melody</button>
-      <button id="playMelodyBtn">Play Melody</button>
-      <!-- This button generates the HASH you will paste into cied.html -->
-      <button id="saveMelodyBtn">Generate Hash (For Editor Code)</button>
-      <!-- This button generates the PATTERN you will use to UNLOCK the editor -->
-      <button id="exportMelodyBtn">Export Melody Pattern (For Editor Input)</button>
+  <!-- ==== RHYTHM ==== -->
+  <div class="rhythm-block">
+    <h4>Set Note Length</h4>
+    <div class="button-row">
+      <button data-duration="0.25" class="selected-duration">S (1/4s)</button>
+      <button data-duration="0.5">M (1/2s)</button>
+      <button data-duration="1.0">L (1s)</button>
     </div>
-
-    <div class="melodybar" id="melodyBar"></div>
-
-    <div class="hash-flex" id="hashFlex" style="display:none;">
-      <span class="hash-label">Password hash:</span>
-      <!-- Copy this value and paste it into cied.html's JavaScript -->
-      <span id="fullHash"></span>
-      <button id="copyHashBtn" title="Copy hash">Copy</button>
-      <span id="hashNote" style="color: var(--success); font-size: 0.9em;">(64-char SHA-256)</span>
-    </div>
-
-    <!-- Copy this value and paste it into the import box in cied.html or decode section here -->
-    <div id="exportBox" class="export-box" style="display:none;" title="Click to copy"></div>
-
-    <!-- Decode Section -->
-    <div class="outbox">
-      <label for="decodeInput">Paste Encoded Code String to Decode:</label>
-      <textarea id="decodeInput" placeholder="Paste code here"></textarea>
-
-      <label>Color Grid: Tap the correct melody (password) to unlock:</label>
-      <div class="piano-container" id="pianoContainer2"></div>
-
-      <div class="melody-controls">
-        <button id="clearMelodyBtn2">Clear Melody</button>
-        <button id="playMelodyBtn2">Play Melody</button>
-        <button id="decodeBtn">Decode</button>
-      </div>
-
-      <div class="melodybar" id="melodyBar2"></div>
-
-      <div class="import-group">
-        <b>Or, import a melody pattern:</b>
-        <input type="text" id="importMelodyInput" placeholder="Paste melody pattern here">
-        <button id="importMelodyBtn">Import</button>
-      </div>
-
-      <div id="decodeStatus"></div>
-
-      <label>Decoded Text:</label>
-      <textarea id="decodedOutput" readonly></textarea>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
+      <input id="loopStart" type="number" min="1" value="1" style="width:50px;">
+      <input id="loopEnd"   type="number" min="1" value="8" style="width:50px;">
+      <button id="toggleLoopBtn">LOOP MODE</button>
     </div>
   </div>
 
-  <script>
-    // --- CIPHER ---
-    const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?! ';
-    const symbolToCode = {}, codeToSymbol = {};
-    for (let i = 0; i < symbols.length; ++i) {
-      const code = i.toString(36);
-      symbolToCode[symbols[i]] = code;
-      codeToSymbol[code] = symbols[i];
-    }
-    const palette = [
-      "#d4c4a8", "#00ff8c", "#d7ff00", "#ffe600", "#ff9c00", "#ff3700",
-      "#ff00b3", "#7a00ff", "#0039ff", "#00b3ff", "#00ff6a", "#b6ff00"
-    ];
+  <div style="margin-top:1rem;color:var(--y);font-weight:bold;">Tap your melody below:</div>
+  <div class="piano-container" id="piano1"></div>
 
-    function encodeText(text) {
-      text = text.toUpperCase();
-      let code = '';
-      for (let c of text) {
-        let v = symbolToCode[c];
-        if (!v) v = symbolToCode[' '];
-        code += v;
+  <div class="melody-controls">
+    <button id="clearMelodyBtn">CLEAR</button>
+    <button id="togglePlayBtn">PLAY</button>
+    <button id="deleteNoteBtn">DELETE</button>
+    <button id="saveMelodyBtn">SAVE</button>
+    <button id="exportMelodyBtn">EXPORT</button>
+  </div>
+
+  <div class="melodybar" id="melodyBar"></div>
+  <div id="hashFlex" class="hash-flex" style="display:none;">
+    <span class="hash-label">Password hash:</span>
+    <span id="fullHash"></span>
+    <button id="copyHashBtn">Copy</button>
+    <span id="hashNote"></span>
+  </div>
+  <div id="exportBox" class="export-box" style="display:none;"></div>
+
+  <!-- ==== DECODE ==== -->
+  <div class="outbox" style="margin-top:2rem;padding:1.5rem;border:1.5px solid var(--y);border-radius:8px;background:rgba(212,196,168,.05);">
+    <div class="accordion-header" onclick="toggle('decodeStr')">Paste Encoded String <span class="accordion-icon">></span></div>
+    <div class="accordion-content" id="decodeStr"><textarea id="decodeInput" placeholder="Paste code"></textarea></div>
+
+    <div class="accordion-header" onclick="toggle('decodeOut')">Decoded Text <span class="accordion-icon">></span></div>
+    <div class="accordion-content" id="decodeOut"><textarea id="decodedOutput" readonly></textarea></div>
+
+    <div style="margin-top:1.5rem;color:var(--y);font-weight:bold;">Tap the correct melody to unlock:</div>
+    <div class="piano-container" id="piano2"></div>
+
+    <div class="melody-controls">
+      <button id="clearMelodyBtn2">CLEAR</button>
+      <button id="togglePlayBtn2">PLAY</button>
+      <button id="deleteNoteBtn2">DELETE</button>
+      <button id="decodeBtn">DECODE</button>
+    </div>
+
+    <div class="melodybar" id="melodyBar2"></div>
+
+    <div class="import-group" style="margin-top:1rem;">
+      <b>Or import pattern:</b>
+      <input id="importMelodyInput" type="text" placeholder="Paste pattern">
+      <button id="importMelodyBtn2">Import</button>
+    </div>
+
+    <div id="decodeStatus" style="margin-top:1rem;font-weight:bold;"></div>
+  </div>
+</div>
+
+<script>
+/* ---------- GLOBALS ---------- */
+const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,?! ';
+const palette = ["#d4c4a8","#00ff8c","#d7ff00","#ffe600","#ff9c00","#ff3700","#ff00b3","#7a00ff","#0039ff","#00b3ff","#00ff6a","#b6ff00"];
+const MAX = 64;
+let selectedDuration = 0.25, isLooping = false, loopTO = null;
+let synth = null;
+let melody = [], melody2 = [], passwordHash = '';
+melody.activeIndex = melody2.activeIndex = -1;
+
+/* ---------- HELPERS ---------- */
+function midiName(m){const n=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return n[m%12]+Math.floor(m/12-1);}
+async function initAudio(){if(Tone.context.state!=='running')await Tone.start();if(!synth)synth=new Tone.PolySynth(Tone.Synth,{oscillator:{type:'triangle'},envelope:{attack:.005,decay:.1,sustain:.3,release:1}}).toDestination();}
+async function playNote(m){await initAudio();synth.triggerAttackRelease(midiName(m),selectedDuration);}
+function encode(t){t=t.toUpperCase();let s='';for(let c of t){let i=symbols.indexOf(c);if(i===-1)i=symbols.indexOf(' ');s+=i.toString(36).padStart(2,'0');}return s;}
+function decode(s){if(s.length%2)return'?';let r='';for(let i=0;i<s.length;i+=2){let idx=parseInt(s.slice(i,i+2),36);r+=idx<symbols.length?symbols[idx]:'?';}return r;}
+async function hashMel(m){const a=m.map(x=>x.note);const buf=await crypto.subtle.digest('SHA-256',new Uint8Array(a));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function patMel(m){return m.map(o=>`${o.note.toString(36)}-${o.duration}`).join('_');}
+function melPat(p){return p.split('_').map(s=>{let[a,b]=s.split('-');let n=parseInt(a,36),d=parseFloat(b);return isNaN(n)||isNaN(d)?null:{note:n,duration:d};}).filter(Boolean);}
+
+/* ---------- ACCORDION ---------- */
+function toggle(id){
+  const el=document.getElementById(id),icon=el.previousElementSibling.querySelector('.accordion-icon');
+  el.classList.toggle('expanded');icon.classList.toggle('rotated');
+  if(id==='code')showCode(document.getElementById('encodeInput').value.trim());
+}
+
+/* ---------- GRID RENDER ---------- */
+function renderGrid(id, mel, updBar, statusId) {
+  const container = document.getElementById(id);
+  container.innerHTML = '';
+
+  const add = (n) => {
+    const item = { note: n, duration: selectedDuration };
+    if (mel.activeIndex >= 0 && mel.activeIndex < mel.length) {
+      if (mel.length < MAX) {
+        mel.splice(mel.activeIndex, 0, item);
+        document.getElementById(statusId).textContent = `Inserted before step ${mel.activeIndex + 1}`;
+      } else {
+        document.getElementById(statusId).textContent = `Max ${MAX} notes reached`;
       }
-      return code;
-    }
-    function decodeString(str) {
-      let result = '';
-      for (let ch of str) {
-        let c = codeToSymbol[ch];
-        if (!c) c = '?';
-        result += c;
-      }
-      return result;
-    }
-
-    // --- AUDIO ---
-    function midiToNoteName(midi) {
-      const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-      return names[midi%12] + Math.floor(midi/12-1);
-    }
-
-    let synth = null;
-    async function initializeAudio() {
-      if (Tone.context.state !== 'running') await Tone.start();
-      if (!synth) {
-        synth = new Tone.PolySynth(Tone.Synth, {
-          oscillator: { type: "triangle" },
-          envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
-        }).toDestination();
+      mel.activeIndex = -1;
+    } else {
+      if (mel.length < MAX) {
+        mel.push(item);
+        document.getElementById(statusId).textContent = `Added note ${mel.length}`;
+      } else {
+        document.getElementById(statusId).textContent = `Max ${MAX} notes reached`;
       }
     }
+    updBar();
+  };
 
-    async function playPianoNote(note) {
-      await initializeAudio();
-      const name = midiToNoteName(note);
-      synth.triggerAttackRelease(name, "16n");
-    }
-
-    // --- GRID ---
-    const naturalNotes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72];
-    function renderGrid(gridId, cb) {
-      const grid = document.getElementById(gridId);
-      grid.innerHTML = '';
-      naturalNotes.forEach(n => {
-        const btn = document.createElement('button');
-        btn.className = 'note-btn';
-        btn.dataset.note = n;
-        const name = midiToNoteName(n);
-        btn.innerHTML = `<span>${name}</span>`;
-        btn.style.background = palette[n % 12];
-        btn.onclick = async (e) => {
-          await playPianoNote(n);
-          btn.classList.add('active');
-          setTimeout(() => btn.classList.remove('active'), 180);
-          if (cb) cb(n);
-        };
-        grid.appendChild(btn);
-      });
-    }
-
-    // --- MELODY UTILS ---
-    async function hashMelody(mel) {
-      const bytes = new Uint8Array(mel);
-      const hashBuf = await crypto.subtle.digest('SHA-256', bytes);
-      return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
-    function melodyToPattern(mel) { return mel.map(n => n.toString(36)).join('-'); }
-    function patternToMelody(str) { return str.split('-').map(s => parseInt(s,36)).filter(x => !isNaN(x)); }
-
-    async function playMelody(mel, barId) {
-      if (!mel || !mel.length) return;
-      await initializeAudio();
-      let time = Tone.now();
-      const duration = 0.25;
-      const bar = document.getElementById(barId);
-      const spans = bar.querySelectorAll('.melodynote');
-      mel.forEach((note, i) => {
-        const name = midiToNoteName(note);
-        synth.triggerAttackRelease(name, duration * 0.95, time);
-        Tone.Draw.schedule(() => {
-          spans.forEach(s => s.classList.remove('playing'));
-          if (spans[i]) spans[i].classList.add('playing');
-        }, time);
-        time += duration;
-      });
-      Tone.Draw.schedule(() => {
-        spans.forEach(s => s.classList.remove('playing'));
-      }, time);
-    }
-
-    // --- ENCODE MELODY ---
-    let melody = [];
-    let passwordHash = '';
-    
-    function addToMelody(note) {
-      if (melody.length >= 32) return;
-      melody.push(note);
-      updateMelodyBar();
-    }
-    function updateMelodyBar() {
-      const bar = document.getElementById('melodyBar');
-      bar.innerHTML = '';
-      melody.forEach(n => {
-        const span = document.createElement('span');
-        span.className = 'melodynote';
-        span.textContent = midiToNoteName(n);
-        bar.appendChild(span);
-      });
-    }
-
-    document.getElementById('clearMelodyBtn').onclick = () => {
-      melody = [];
-      passwordHash = ''; // Clear hash too
-      updateMelodyBar();
-      document.getElementById('hashFlex').style.display = 'none';
-      document.getElementById('exportBox').style.display = 'none';
+  const notes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72];
+  notes.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'note-btn';
+    btn.dataset.note = m;
+    btn.textContent = midiName(m);
+    btn.style.background = palette[m % 12];
+    btn.onclick = async () => {
+      await playNote(m);
+      add(m);
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 180);
     };
-    document.getElementById('playMelodyBtn').onclick = () => playMelody(melody, 'melodyBar');
+    container.appendChild(btn);
+  });
 
-    document.getElementById('saveMelodyBtn').onclick = async () => {
-      if (!melody.length) {
-        const note = document.getElementById('hashNote');
-        note.textContent = "Tap a melody as your password!";
-        document.getElementById('hashFlex').style.display = 'flex';
-        setTimeout(() => document.getElementById('hashFlex').style.display = 'none', 3000);
-        return;
+  const rest = document.createElement('button');
+  rest.className = 'note-btn';
+  rest.textContent = 'REST';
+  rest.style.background = 'var(--bg)';
+  rest.style.color = 'var(--secondary)';
+  rest.style.border = '2px dashed var(--y)';
+  rest.onclick = () => {
+    add(0);
+    rest.classList.add('active');
+    setTimeout(() => rest.classList.remove('active'), 180);
+  };
+  container.appendChild(rest);
+}
+
+/* ---------- BAR UPDATE ---------- */
+function updateBar(barId, mel, statusId) {
+  const bar = document.getElementById(barId);
+  bar.innerHTML = '';
+  mel.forEach((o, i) => {
+    const span = document.createElement('span');
+    const dur = o.duration === 0.25 ? 'S' : o.duration === 0.5 ? 'M' : 'L';
+    span.className = o.note === 0 ? 'melodynote rest' : 'melodynote';
+    span.textContent = o.note === 0 ? `REST (${dur})` : `${midiName(o.note)} (${dur})`;
+    span.dataset.idx = i;
+    span.onclick = e => {
+      e.stopPropagation();
+      document.querySelectorAll(`#${barId} .melodynote`).forEach(s => s.classList.remove('active-edit'));
+      if (mel.activeIndex === i) {
+        mel.activeIndex = -1;
+        document.getElementById(statusId).textContent = 'Deselected – next note appends';
+      } else {
+        mel.activeIndex = i;
+        span.classList.add('active-edit');
+        document.getElementById(statusId).textContent = `Selected ${i + 1} – next note inserts before`;
       }
-      passwordHash = await hashMelody(melody);
+    };
+    bar.appendChild(span);
+  });
+
+  if (bar.sortable) bar.sortable.destroy();
+  bar.sortable = Sortable.create(bar, {
+    animation: 150, delay: 150,
+    onEnd: evt => {
+      const oldI = parseInt(evt.item.dataset.idx, 10);
+      const newI = evt.newIndex;
+      const [moved] = mel.splice(oldI, 1);
+      mel.splice(newI, 0, moved);
+      mel.activeIndex = -1;
+      updateBar(barId, mel, statusId);
+    }
+  });
+
+  if (mel.activeIndex >= 0) {
+    const active = bar.querySelector(`[data-idx="${mel.activeIndex}"]`);
+    if (active) active.classList.add('active-edit');
+  }
+  document.getElementById('loopEnd').value = Math.max(1, mel.length);
+}
+
+/* ---------- PLAYBACK ---------- */
+async function playSeg(mel, barId, start, end, loop){
+  if(!mel.length) return;
+  await initAudio();
+  if(loopTO) clearTimeout(loopTO);
+  const spans=document.querySelectorAll(`#${barId} .melodynote`);
+  const seg=mel.slice(start,end+1);
+  let t=Tone.now();
+  seg.forEach((o,i)=>{
+    const idx=start+i;
+    if(o.note!==0) synth.triggerAttackRelease(midiName(o.note),o.duration*.95,t);
+    Tone.Draw.schedule(()=>{spans.forEach(s=>s.classList.remove('playing')); if(spans[idx])spans[idx].classList.add('playing');},t);
+    Tone.Draw.schedule(()=>{if(spans[idx])spans[idx].classList.remove('playing');},t+o.duration);
+    t+=o.duration;
+  });
+  Tone.Transport.scheduleOnce(()=>{
+    Tone.Transport.stop(); Tone.Transport.cancel();
+    if(loop) loopTO=setTimeout(()=>playSeg(mel,barId,start,end,true),100);
+  },seg.reduce((a,b)=>a+b.duration,0));
+  Tone.Transport.start();
+}
+function playMel(mel, barId, btnId){
+  const btn=document.getElementById(btnId);
+  if(btn.textContent.includes('STOP')){stopAll();return;}
+  let s=0,e=mel.length-1;
+  if(isLooping){
+    s=Math.max(0,parseInt(document.getElementById('loopStart').value,10)-1);
+    e=Math.min(mel.length-1,parseInt(document.getElementById('loopEnd').value,10)-1);
+    if(s>e) s=e;
+  }
+  playSeg(mel,barId,s,e,isLooping);
+  btn.textContent='STOP';
+}
+function stopAll(){
+  Tone.Transport.stop(); Tone.Transport.cancel();
+  if(loopTO) clearTimeout(loopTO); loopTO=null;
+  document.querySelectorAll('.melodynote').forEach(s=>s.classList.remove('playing'));
+  ['togglePlayBtn','togglePlayBtn2'].forEach(id=>document.getElementById(id).textContent='PLAY');
+}
+
+/* ---------- EVENT WIRING ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const updateMelodyBar = () => updateBar('melodyBar', melody, 'hashNote');
+  const updateMelodyBar2 = () => updateBar('melodyBar2', melody2, 'decodeStatus');
+
+  // Duration buttons
+  document.querySelectorAll('.rhythm-block button[data-duration]').forEach(b => {
+    b.onclick = () => {
+      selectedDuration = +b.dataset.duration;
+      document.querySelectorAll('.rhythm-block button[data-duration]').forEach(x => x.classList.remove('selected-duration'));
+      b.classList.add('selected-duration');
+    };
+  });
+
+  // Render pianos
+  renderGrid('piano1', melody, updateMelodyBar, 'hashNote');
+  renderGrid('piano2', melody2, updateMelodyBar2, 'decodeStatus');
+
+  // Encode input
+  const ei = document.getElementById('encodeInput');
+  ei.value = 'funkyeah';
+  const showCode = v => document.getElementById('codeStringDisplay').textContent = encode(v);
+  showCode(ei.value);
+  ei.oninput = () => showCode(ei.value.trim());
+  document.getElementById('encodeBtn').onclick = () => showCode(ei.value.trim());
+
+  // === REBUILD FUNCTIONS ===
+  const rebuildEncodeSide = () => {
+    renderGrid('piano1', melody, updateMelodyBar, 'hashNote');
+    document.getElementById('togglePlayBtn').onclick = () => playMel(melody, 'melodyBar', 'togglePlayBtn');
+    document.getElementById('deleteNoteBtn').onclick = () => {
+      if (melody.activeIndex >= 0) {
+        melody.splice(melody.activeIndex, 1);
+        melody.activeIndex = -1;
+        updateMelodyBar();
+      }
+    };
+    document.getElementById('saveMelodyBtn').onclick = async () => {
+      if (!melody.length) return alert('Compose a melody first');
+      passwordHash = await hashMel(melody);
       document.getElementById('fullHash').textContent = passwordHash;
       document.getElementById('hashFlex').style.display = 'flex';
-      document.getElementById('hashNote').textContent = "(64-char SHA-256)";
-    };
-    document.getElementById('copyHashBtn').onclick = () => {
-      const hash = document.getElementById('fullHash').textContent;
-      if (hash) {
-        // Use document.execCommand('copy') for better compatibility in iframes
-        const tempInput = document.createElement('input');
-        tempInput.value = hash;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-        
-        const note = document.getElementById('hashNote');
-        note.textContent = "Copied! Paste this hash into cied.html's script.";
-        setTimeout(() => note.textContent = "(64-char SHA-256)", 3000);
-      }
     };
     document.getElementById('exportMelodyBtn').onclick = () => {
-      if (!melody.length) {
-        const box = document.getElementById('exportBox');
-        box.textContent = 'No melody to export!';
-        box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 1500);
-        return;
-      }
-      const pat = melodyToPattern(melody);
+      if (!melody.length) return;
+      const p = patMel(melody);
       const box = document.getElementById('exportBox');
-      box.textContent = pat;
+      box.textContent = p;
       box.style.display = 'block';
       box.onclick = () => {
-        // Use document.execCommand('copy')
-        const tempInput = document.createElement('input');
-        tempInput.value = pat;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-
-        box.textContent = 'Copied! Paste this pattern into cied.html\'s input box.';
-        setTimeout(() => box.textContent = pat, 3000);
+        navigator.clipboard.writeText(p);
+        box.textContent = 'Copied!';
+        setTimeout(() => box.textContent = p, 1200);
       };
     };
-    
-    const codeStringDisplay = document.getElementById('codeStringDisplay');
-    function showCode(text) {
-      const code = encodeText(text);
-      codeStringDisplay.textContent = code;
-    }
-    document.getElementById('encodeBtn').onclick = () => {
-      const text = document.getElementById('encodeInput').value.trim();
-      if (!text) return;
-      showCode(text);
-    };
+  };
 
-    // --- DECODE MELODY ---
-    let melody2 = [];
-    function addToMelody2(note) {
-      if (melody2.length >= 32) return;
-      melody2.push(note);
-      updateMelodyBar2();
-    }
-    function updateMelodyBar2() {
-      const bar = document.getElementById('melodyBar2');
-      bar.innerHTML = '';
-      melody2.forEach(n => {
-        const span = document.createElement('span');
-        span.className = 'melodynote';
-        span.textContent = midiToNoteName(n);
-        bar.appendChild(span);
-      });
-    }
-
-    document.getElementById('clearMelodyBtn2').onclick = () => {
-      melody2 = [];
-      updateMelodyBar2();
-      document.getElementById('importMelodyInput').value = '';
-    };
-    document.getElementById('playMelodyBtn2').onclick = () => playMelody(melody2, 'melodyBar2');
-    document.getElementById('importMelodyBtn').onclick = () => {
-      const pat = document.getElementById('importMelodyInput').value.trim();
-      if (!pat) return;
-      melody2 = patternToMelody(pat);
-      updateMelodyBar2();
-    };
-
-    document.getElementById('decodeBtn').onclick = async () => {
-      const code = document.getElementById('decodeInput').value.trim();
-      const text = decodeString(code);
-      const status = document.getElementById('decodeStatus');
-      
-      // Note: This decode relies on the current browser session's passwordHash variable,
-      // not the hardcoded one in cied.html.
-      if (!passwordHash) {
-        status.innerHTML = '<span class="fail">Save a melody as password during encoding first.</span>';
-        document.getElementById('decodedOutput').value = '';
-        return;
-      }
-      const hash2 = await hashMelody(melody2);
-      if (hash2 === passwordHash) {
-        status.innerHTML = '<span class="success">Password accepted!</span>';
-        document.getElementById('decodedOutput').value = text;
-      } else {
-        status.innerHTML = '<span class="fail">Incorrect melody!</span>';
-        document.getElementById('decodedOutput').value = '';
+  const rebuildDecodeSide = () => {
+    renderGrid('piano2', melody2, updateMelodyBar2, 'decodeStatus');
+    document.getElementById('togglePlayBtn2').onclick = () => playMel(melody2, 'melodyBar2', 'togglePlayBtn2');
+    document.getElementById('deleteNoteBtn2').onclick = () => {
+      if (melody2.activeIndex >= 0) {
+        melody2.splice(melody2.activeIndex, 1);
+        melody2.activeIndex = -1;
+        updateMelodyBar2();
       }
     };
+  };
 
-    // --- INIT ---
-    renderGrid('pianoContainer1', addToMelody);
-    renderGrid('pianoContainer2', addToMelody2);
-    document.getElementById('encodeInput').value = "funkyeah";
-    showCode(document.getElementById('encodeInput').value);
-  </script>
+  // Initial wiring
+  rebuildEncodeSide();
+  rebuildDecodeSide();
+
+  // === ENCODE SIDE ===
+  document.getElementById('clearMelodyBtn').onclick = () => {
+    stopAll();
+    melody = [];
+    melody.activeIndex = -1;
+    document.getElementById('melodyBar').innerHTML = '';
+    document.getElementById('hashFlex').style.display = 'none';
+    document.getElementById('exportBox').style.display = 'none';
+    document.getElementById('hashNote').textContent = 'Melody cleared!';
+    rebuildEncodeSide(); // ← RE-WIRES PLAY, DELETE, SAVE
+  };
+
+  document.getElementById('copyHashBtn').onclick = () => {
+    navigator.clipboard.writeText(passwordHash).then(() => {
+      const n = document.getElementById('hashNote');
+      n.textContent = 'Copied!';
+      setTimeout(() => n.textContent = '', 1500);
+    });
+  };
+
+  // === DECODE SIDE ===
+  document.getElementById('clearMelodyBtn2').onclick = () => {
+    stopAll();
+    melody2 = [];
+    melody2.activeIndex = -1;
+    document.getElementById('melodyBar2').innerHTML = '';
+    document.getElementById('importMelodyInput').value = '';
+    document,getElementById('decodeStatus').textContent = 'Melody cleared!';
+    rebuildDecodeSide(); // ← RE-WIRES PLAY, DELETE
+  };
+
+  document.getElementById('importMelodyBtn2').onclick = () => {
+    const p = document.getElementById('importMelodyInput').value.trim();
+    if (!p) return;
+    melody2 = melPat(p);
+    melody2.activeIndex = -1;
+    updateMelodyBar2();
+    rebuildDecodeSide();
+  };
+
+  document.getElementById('decodeBtn').onclick = async () => {
+    const code = document.getElementById('decodeInput').value.trim();
+    if (!code) {
+      document.getElementById('decodeStatus').innerHTML = '<span style="color:var(--warning)">Enter code</span>';
+      return;
+    }
+    const txt = decode(code);
+    const st = document.getElementById('decodeStatus');
+    if (!passwordHash) {
+      st.innerHTML = '<span style="color:var(--warning)">Save a password first</span>';
+      return;
+    }
+    const h = await hashMel(melody2);
+    if (h === passwordHash) {
+      st.innerHTML = '<span style="color:var(--success)">Unlocked!</span>';
+      document.getElementById('decodedOutput').value = txt;
+    } else {
+      st.innerHTML = '<span style="color:var(--warning)">Wrong melody</span>';
+      document.getElementById('decodedOutput').value = '';
+    }
+  };
+
+  // Loop toggle
+  document.getElementById('toggleLoopBtn').onclick = e => {
+    isLooping = !isLooping;
+    e.target.classList.toggle('loop-active', isLooping);
+    e.target.textContent = isLooping ? 'STOP LOOP' : 'LOOP MODE';
+    if (isLooping) playMel(melody, 'melodyBar', 'togglePlayBtn');
+    else stopAll();
+  };
+
+  // Initial empty bars
+  updateMelodyBar();
+  updateMelodyBar2();
+});
+</script>
 </body>
 </html>
-
